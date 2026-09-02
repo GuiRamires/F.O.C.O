@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { handleTentarAtribuirEstrela } from './controllers/estrelaController'
 import { supabase } from './supabaseClient'
+import Login from './Login'
 
 const FOCOS_TESTE = [
   { id: 'a0000000-0000-0000-0000-000000000001', titulo: 'Inglês' },
@@ -11,20 +12,21 @@ function App() {
   const [resultados, setResultados] = useState<Record<string, string>>({})
   const [carregando, setCarregando] = useState<string | null>(null)
   const [logado, setLogado] = useState(false)
+  const [verificandoSessao, setVerificandoSessao] = useState(true)
 
   useEffect(() => {
-    async function fazerLogin() {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: 'teste@foco.com',
-        password: 'Teste123456',
-      })
-      if (error) {
-        console.error('Erro no login:', error.message)
-      } else {
-        setLogado(true)
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setLogado(!!session)
+      setVerificandoSessao(false)
+    })
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLogado(!!session)
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
     }
-    fazerLogin()
   }, [])
 
   async function testarEstrela(focoId: string) {
@@ -37,15 +39,29 @@ function App() {
     setCarregando(null)
   }
 
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
+
+  if (verificandoSessao) {
+    return <p style={{ padding: '2rem' }}>Carregando...</p>
+  }
+
+  if (!logado) {
+    return <Login onLoginSuccess={() => setLogado(true)} />
+  }
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>F.O.C.O. — Teste da Trava de 10h (Estrela Dourada)</h1>
-      <p>Status login: {logado ? '✅ Autenticado' : '⏳ Autenticando...'}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>F.O.C.O. — Teste da Trava de 10h (Estrela Dourada)</h1>
+        <button onClick={handleLogout}>Sair</button>
+      </div>
 
       {FOCOS_TESTE.map((foco) => (
         <div key={foco.id} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
           <h2>{foco.titulo}</h2>
-          <button onClick={() => testarEstrela(foco.id)} disabled={carregando === foco.id || !logado}>
+          <button onClick={() => testarEstrela(foco.id)} disabled={carregando === foco.id}>
             {carregando === foco.id ? 'Verificando...' : 'Tentar Atribuir Estrela Dourada'}
           </button>
           {resultados[foco.id] && (
