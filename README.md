@@ -1,32 +1,115 @@
-# React + TypeScript + Vite
+# F.O.C.O.
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Plataforma Web para Gestão de Múltiplos Interesses, Aprendizagem Autodirigida e Organização de Prioridades Pessoais**
 
-Currently, two official plugins are available:
+Projeto Final de Curso (PFC) — Bacharelado em Sistemas de Informação, Universidade de Mogi das Cruzes (UMC).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## O problema
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Pessoas curiosas e multidisciplinares costumam acumular vários interesses ao mesmo tempo como hobbies, cursos, projetos pessoais e acabam se dispersando entre eles. Essa fragmentação de energia cognitiva gera sobrecarga, abandono recorrente de iniciativas e uma sensação crônica de improdutividade e culpa.
 
-## Expanding the Oxlint configuration
+Ferramentas tradicionais de produtividade (listas de tarefas, planners) tratam todos os itens com a mesma urgência e rigidez, o que gera ansiedade e poluição visual em vez de ajudar na tomada de decisão consciente.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## A proposta
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+O **F.O.C.O.** (Filtrar, Organizar, Concentrar, Observar) é uma plataforma web que atua como uma "bússola comportamental": em vez de ser mais um gerenciador genérico de listas, ela usa **travas de UX desenhadas intencionalmente** para limitar o excesso de escolhas e induzir a execução real — sem mecânicas punitivas, e sem descartar projetos pausados.
+
+### O método, em 4 etapas
+
+**Filtrar** — cadastro rápido de novas ideias, que entram obrigatoriamente em estado de "quarentena", sem virar prioridade de imediato
+**Organizar** — pilha visual de Focos ativos, com atribuição de **Estrela Dourada** (prioridade máxima) restrita a apenas 1 item por vez dentro do Top 3
+**Concentrar** — timer de execução com bloqueio de conclusões precipitadas e registro obrigatório de evidência de aprendizado ao final
+**Observar** — dashboard de consistência e evolução por Foco
+
+## Público-alvo
+
+Jovens adultos e estudantes com múltiplos interesses pessoais, acadêmicos e profissionais que têm dificuldade em estabelecer prioridades e manter o acompanhamento contínuo de seus objetivos de aprendizagem.
+
+## Tecnologias
+
+| Camada | Tecnologia |
+|---|---|
+| **Front-end** | React.js (Vite) + TypeScript + Tailwind CSS |
+| **Back-end** | Supabase (BaaS — Backend as a Service) |
+| **Banco de dados** | PostgreSQL (via Supabase) |
+| **Autenticação e segurança** | Supabase Auth + Row Level Security (RLS) |
+| **Versionamento** | Git + GitHub |
+| **Deploy** | Vercel (front-end) + Supabase Cloud (banco/auth) |
+
+### Por que essa stack
+
+O Supabase foi escolhido como BaaS para eliminar a necessidade de um servidor intermediário dedicado, permitindo acesso direto do cliente via SDK — com autenticação via JWT e controle de acesso a nível de linha (RLS), garantindo que cada usuário só acesse seus próprios dados.
+
+## Arquitetura
+
+O projeto segue uma separação estrita em 3 camadas:
+
+```
+Controllers  →  coordenam requisições da interface
+Services     →  concentram as regras de negócio
+Repositories →  acessam diretamente o Supabase/banco de dados
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Essa separação é uma decisão arquitetural deliberada — cada regra de negócio crítica (como as travas da Estrela Dourada) vive isolada na camada de Service, independente de como a interface é construída.
+
+## Regra de negócio em destaque: a Estrela Dourada
+
+Um dos pilares comportamentais do F.O.C.O. é a trava de priorização da **Estrela Dourada**:
+
+Apenas os 3 primeiros cards da pilha (**Top 3**) podem receber a Estrela
+A Estrela é única — apenas um Foco pode tê-la por vez
+Um Foco só pode **receber** a Estrela após acumular no mínimo **10 horas** de timer concluído e relatado — impedindo que uma ideia impulsiva vire prioridade máxima antes de provar constância
+Retirar a Estrela de um Foco dispara uma **confirmação reflexiva**, e o Foco é movido para o **Laboratório de Sonhos** (não é excluído — fica em estado de espera, resgatável a qualquer momento)
+A exclusão definitiva de um Foco só é permitida dentro do Laboratório de Sonhos, mediante confirmação digitada — nunca a partir da pilha principal
+
+## Escopo do MVP
+
+**Incluído:**
+Autenticação de usuários
+Cadastro de ideias em quarentena (Filtrar)
+Pilha visual com prioridade única no Top 3 (Organizar)
+Timer de concentração com bloqueio de conclusão precipitada (Concentrar)
+Laboratório de Sonhos com congelamento reflexivo
+Registro de evidências de aprendizado e dashboard de consistência (Observar)
+
+**Fora do escopo:**
+Aplicativo nativo mobile (iOS/Android)
+Integração com calendários externos
+Recursos de rede social/compartilhamento público
+Recomendação de rotina via IA
+
+## Rodando o projeto localmente
+
+### Pré-requisitos
+Node.js instalado
+Conta no Supabase com um projeto criado
+
+### Passos
+
+```bash
+# Clonar o repositório
+git clone https://github.com/GuiRamires/F.O.C.O.git
+cd F.O.C.O
+
+# Instalar dependências
+npm install
+
+# Criar o arquivo .env na raiz do projeto com:
+# VITE_SUPABASE_URL=sua_url_aqui
+# VITE_SUPABASE_ANON_KEY=sua_chave_publica_aqui
+
+# Rodar o servidor de desenvolvimento
+npm run dev
+```
+
+O schema do banco de dados está versionado em `supabase/migrations/`.
+
+## Contexto acadêmico
+
+Este projeto é desenvolvido como Projeto Final de Curso (PFC) para o Bacharelado em Sistemas de Informação da UMC, sob orientação do Prof. Alessandro Aparecido da Silva Horas.
+
+---
+
+**Autor:** Guilherme Ramires Lana
