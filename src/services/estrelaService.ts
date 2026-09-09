@@ -17,7 +17,7 @@ export async function tentarAtribuirEstrela(focoId: string): Promise<ResultadoTe
   if (totalMinutos >= MINUTOS_MINIMOS) {
     return {
       permitido: true,
-      mensagem: 'Estrela Dourada liberada! Este Foco já provou constância suficiente.',
+      mensagem: 'Esse F.O.C.O Agora é Prioridade.',
       horasAcumuladas,
       horasFaltantes: 0,
     }
@@ -28,7 +28,7 @@ export async function tentarAtribuirEstrela(focoId: string): Promise<ResultadoTe
 
   return {
     permitido: false,
-    mensagem: `Ainda não é possível atribuir a Estrela Dourada. Faltam ${horasFaltantes.toFixed(1)}h de foco registrado neste card.`,
+    mensagem: `Ainda não é possível atribuir a Estrela Dourada. Faltam ${horasFaltantes.toFixed(1)}h de foco registrado para este card.`,
     horasAcumuladas,
     horasFaltantes,
   }
