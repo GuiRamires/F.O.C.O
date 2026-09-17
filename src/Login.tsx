@@ -3,9 +3,10 @@ import { supabase } from './supabaseClient'
 
 interface LoginProps {
   onLoginSuccess: () => void
+  onIrParaCadastro: () => void
 }
 
-function Login({ onLoginSuccess }: LoginProps) {
+function Login({ onLoginSuccess, onIrParaCadastro }: LoginProps) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
@@ -60,6 +61,12 @@ function Login({ onLoginSuccess }: LoginProps) {
           {carregando ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
+      <p style={{ marginTop: '1rem' }}>
+        Não tem conta?{' '}
+        <button onClick={onIrParaCadastro} style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline' }}>
+          Cadastre-se
+        </button>
+      </p>
     </div>
   )
 }

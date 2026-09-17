@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { handleTentarAtribuirEstrela } from './controllers/estrelaController'
 import { supabase } from './supabaseClient'
 import Login from './Login'
+import Cadastro from './Cadastro'
 
 const FOCOS_TESTE = [
   { id: 'a0000000-0000-0000-0000-000000000001', titulo: 'Inglês' },
@@ -24,6 +25,7 @@ function App() {
   const [carregando, setCarregando] = useState<string | null>(null)
   const [logado, setLogado] = useState(false)
   const [verificandoSessao, setVerificandoSessao] = useState(true)
+  const [telaAuth, setTelaAuth] = useState<'login' | 'cadastro'>('login')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,7 +46,6 @@ function App() {
     const id = Date.now()
     setToasts((prev) => [...prev, { id, mensagem, permitido }])
 
-    // Remove o toast sozinho depois de 4 segundos
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 4000)
@@ -59,7 +60,6 @@ function App() {
       resultado.permitido
     )
 
-    // Dispara a animação do card
     setAnimacoes((prev) => ({ ...prev, [focoId]: resultado.permitido ? 'liberado' : 'bloqueado' }))
     setTimeout(() => {
       setAnimacoes((prev) => ({ ...prev, [focoId]: null }))
@@ -70,6 +70,7 @@ function App() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    setTelaAuth('login')
   }
 
   if (verificandoSessao) {
@@ -77,12 +78,24 @@ function App() {
   }
 
   if (!logado) {
-    return <Login onLoginSuccess={() => setLogado(true)} />
-  }
+    if (telaAuth === 'cadastro') {
+      return (
+        <Cadastro
+          onCadastroSuccess={() => setLogado(true)}
+          onVoltarParaLogin={() => setTelaAuth('login')}
+        />
+      )
+    }
+    return (
+  <Login
+    onLoginSuccess={() => setLogado(true)}
+    onIrParaCadastro={() => setTelaAuth('cadastro')}
+  />
+  )
+}
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      {/* Container dos Toasts, fixo no canto da tela */}
       <div className="toast-container">
         {toasts.map((toast) => (
           <div
