@@ -101,7 +101,11 @@ function App() {
           onCancelar={() => setTelaAtual('lista')}
         />
       ) : (
-        <ListaFocos focos={focos} onNovoFoco={() => setTelaAtual('novoFoco')} />
+        <ListaFocos
+          focos={focos}
+          userId={userId!}
+          onFocoAtualizado={() => carregarFocos(userId!)}
+        />
       )}
     </div>
   )

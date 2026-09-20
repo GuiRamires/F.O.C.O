@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from './supabaseClient'
 import { validarSenha } from './utils/validarSenha'
 import BarraForcaSenha from './BarraForcaSenha'
+import TermosModal from './TermosModal'
 
 interface CadastroProps {
   onCadastroSuccess: () => void
@@ -16,6 +17,8 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [erros, setErros] = useState<string[]>([])
   const [carregando, setCarregando] = useState(false)
+  const [termosAceitos, setTermosAceitos] = useState(false)
+  const [modalTermosAberto, setModalTermosAberto] = useState(false)
 
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault()
@@ -30,6 +33,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
     if (!emailLimpo) errosValidacao.push('O e-mail é obrigatório.')
     if (!senha) errosValidacao.push('A senha é obrigatória.')
     if (!confirmarSenha) errosValidacao.push('A confirmação de senha é obrigatória.')
+    if (!termosAceitos) errosValidacao.push('Você precisa aceitar os Termos de Uso para criar sua conta.')
 
     // Validação de senhas iguais
     if (senha && confirmarSenha && senha !== confirmarSenha) {
@@ -143,6 +147,39 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
             style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
+        <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            id="aceite-termos"
+            checked={termosAceitos}
+            onChange={() => {
+              if (!termosAceitos) {
+                setModalTermosAberto(true)
+              } else {
+                setTermosAceitos(false)
+              }
+            }}
+          />
+          <label htmlFor="aceite-termos" style={{ margin: 0, cursor: 'pointer' }}>
+            Li e aceito os{' '}
+            <button
+              type="button"
+              onClick={() => setModalTermosAberto(true)}
+              style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+            >
+              Termos de Uso e Política de Privacidade
+            </button>
+          </label>
+        </div>
+
+        <TermosModal
+          aberto={modalTermosAberto}
+          onAceitar={() => {
+            setTermosAceitos(true)
+            setModalTermosAberto(false)
+          }}
+          onFechar={() => setModalTermosAberto(false)}
+        />
 
         {erros.length > 0 && (
           <div className="alert alert-secondary" role="alert">

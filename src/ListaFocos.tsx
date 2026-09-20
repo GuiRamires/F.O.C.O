@@ -1,13 +1,44 @@
+import { useState } from 'react'
 import type { FocoComProgresso } from './services/focoService'
+import { handleAtribuirEstrela, handleRemoverEstrela } from './controllers/estrelaController'
 
 interface ListaFocosProps {
   focos: FocoComProgresso[]
-  onNovoFoco: () => void
+  userId: string
+  onFocoAtualizado: () => void
 }
 
-function ListaFocos({ focos, onNovoFoco }: ListaFocosProps) {
+function ListaFocos({ focos, userId, onFocoAtualizado }: ListaFocosProps) {
+  const [processando, setProcessando] = useState<string | null>(null)
+
   const focosAtivos = focos.filter((f) => f.status === 'ativo')
   const focosLaboratorio = focos.filter((f) => f.status === 'laboratorio_sonhos')
+
+  async function handleCliqueEstrela(foco: FocoComProgresso) {
+    setProcessando(foco.id)
+
+    if (foco.tem_estrela) {
+      const confirmado = window.confirm(
+        'Deseja tirar a prioridade deste FOCO? Ele será movido para o seu Laboratório de Sonhos para que você reorganize suas energias.'
+      )
+      if (confirmado) {
+        const resultado = await handleRemoverEstrela(foco.id)
+        alert(resultado.mensagem)
+        if (resultado.sucesso) onFocoAtualizado()
+      }
+    } else {
+      const confirmado = window.confirm(
+        `Deseja atribuir a Estrela Dourada ao Foco "${foco.titulo}"? Ele se tornará sua prioridade máxima.`
+      )
+      if (confirmado) {
+        const resultado = await handleAtribuirEstrela(foco.id, userId)
+        alert(resultado.mensagem)
+        if (resultado.sucesso) onFocoAtualizado()
+      }
+    }
+
+    setProcessando(null)
+  }
 
   if (focosAtivos.length === 0 && focosLaboratorio.length === 0) {
     return (
@@ -26,8 +57,14 @@ function ListaFocos({ focos, onNovoFoco }: ListaFocosProps) {
       {focosAtivos.length > 0 && (
         <>
           <h5 style={{ marginBottom: '1rem' }}>Seu FOCO Atual</h5>
-          {focosAtivos.map((foco) => (
-            <CardFoco key={foco.id} foco={foco} />
+          {focosAtivos.map((foco, index) => (
+            <CardFoco
+              key={foco.id}
+              foco={foco}
+              podeReceberEstrela={index < 3}
+              processando={processando === foco.id}
+              onCliqueEstrela={() => handleCliqueEstrela(foco)}
+            />
           ))}
         </>
       )}
@@ -38,7 +75,7 @@ function ListaFocos({ focos, onNovoFoco }: ListaFocosProps) {
             Laboratório de Sonhos
           </h5>
           {focosLaboratorio.map((foco) => (
-            <CardFoco key={foco.id} foco={foco} desativado />
+            <CardFoco key={foco.id} foco={foco} desativado podeReceberEstrela={false} />
           ))}
         </>
       )}
@@ -46,7 +83,15 @@ function ListaFocos({ focos, onNovoFoco }: ListaFocosProps) {
   )
 }
 
-function CardFoco({ foco, desativado = false }: { foco: FocoComProgresso; desativado?: boolean }) {
+interface CardFocoProps {
+  foco: FocoComProgresso
+  desativado?: boolean
+  podeReceberEstrela: boolean
+  processando?: boolean
+  onCliqueEstrela?: () => void
+}
+
+function CardFoco({ foco, desativado = false, podeReceberEstrela, processando, onCliqueEstrela }: CardFocoProps) {
   return (
     <div
       style={{
@@ -64,7 +109,17 @@ function CardFoco({ foco, desativado = false }: { foco: FocoComProgresso; desati
         <span>{foco.horasAcumuladas.toFixed(1)} horas</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-        {!foco.tem_estrela && <span style={{ color: '#666' }}>☆</span>}
+        {podeReceberEstrela ? (
+          <button
+            onClick={onCliqueEstrela}
+            disabled={processando}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: foco.tem_estrela ? '#000' : '#666' }}
+          >
+            {foco.tem_estrela ? '⭐' : '☆'}
+          </button>
+        ) : (
+          <span />
+        )}
         <span style={{ marginLeft: 'auto' }}>{foco.porcentagem.toFixed(0)}%</span>
       </div>
     </div>
