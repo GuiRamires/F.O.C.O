@@ -84,6 +84,13 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
       return
     }
 
+    // Manda o e-mail de boas-vindas
+    supabase.functions.invoke('enviar-email-cadastro', {
+      body: { email: emailLimpo, nome: nomeLimpo },
+    }).catch((err) => {
+      console.error('Erro ao enviar e-mail de boas-vindas:', err)
+    })
+
     onCadastroSuccess()
   }
 
