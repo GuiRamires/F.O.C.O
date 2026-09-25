@@ -28,7 +28,7 @@ export async function handleAtribuirEstrela(focoId: string, userId: string): Pro
       }
     }
 
-    return await atribuirEstrela(focoId)
+    return await atribuirEstrela(focoId, userId)
   } catch (error) {
     return {
       sucesso: false,

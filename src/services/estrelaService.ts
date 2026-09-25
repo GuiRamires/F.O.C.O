@@ -1,4 +1,5 @@
 import { getTotalMinutosByFocoId } from '../repositories/focoRepository'
+import { registrarLog } from './logService'
 
 const HORAS_MINIMAS = 10
 const MINUTOS_MINIMOS = HORAS_MINIMAS * 60 // 600 minutos
@@ -41,7 +42,7 @@ export interface ResultadoAcaoEstrela {
   mensagem: string
 }
 
-export async function atribuirEstrela(focoId: string): Promise<ResultadoAcaoEstrela> {
+export async function atribuirEstrela(focoId: string, userId: string): Promise<ResultadoAcaoEstrela> {
   const resultado = await tentarAtribuirEstrela(focoId)
 
   if (!resultado.permitido) {
@@ -56,6 +57,8 @@ export async function atribuirEstrela(focoId: string): Promise<ResultadoAcaoEstr
   if (error) {
     return { sucesso: false, mensagem: `Erro ao atribuir a estrela: ${error.message}` }
   }
+
+  await registrarLog(userId, 'atribuir_estrela', { foco_id: focoId })
 
   return { sucesso: true, mensagem: 'Esse F.O.C.O agora é sua Prioridade! 🌟' }
 }

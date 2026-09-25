@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 import { validarSenha } from './utils/validarSenha'
 import BarraForcaSenha from './BarraForcaSenha'
 import TermosModal from './TermosModal'
+import { registrarLog } from './services/logService'
 
 interface CadastroProps {
   onCadastroSuccess: () => void
@@ -90,6 +91,10 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
     }).catch((err) => {
       console.error('Erro ao enviar e-mail de boas-vindas:', err)
     })
+    
+    if (data.user) {
+      registrarLog(data.user.id, 'cadastro', { nome: nomeLimpo })
+    }
 
     onCadastroSuccess()
   }
@@ -137,7 +142,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
             padding: 0,
          }}
   >
-    {mostrarSenha ? '🙈' : '👁️'}
+    {mostrarSenha ? '' : '👁️'}
   </button>
 </div>
           <BarraForcaSenha senha={senha} nome={nome} email={email} />

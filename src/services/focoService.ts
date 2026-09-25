@@ -1,5 +1,6 @@
 import { getFocosByUserId, getTotalMinutosByFocoId, criarFoco } from '../repositories/focoRepository'
 import type { Foco, NovoFoco } from '../repositories/focoRepository'
+import { registrarLog } from './logService'
 
 export interface FocoComProgresso extends Foco {
   horasAcumuladas: number
@@ -30,4 +31,5 @@ export async function listarFocosComProgresso(userId: string): Promise<FocoComPr
 
 export async function criarNovoFoco(userId: string, foco: NovoFoco): Promise<void> {
   await criarFoco(userId, foco)
+  await registrarLog(userId, 'criar_foco', { titulo: foco.titulo })
 }

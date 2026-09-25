@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from './supabaseClient'
+import { registrarLog } from './services/logService'
 
 interface LoginProps {
   onLoginSuccess: () => void
@@ -46,6 +47,11 @@ function Login({ onLoginSuccess, onIrParaCadastro }: LoginProps) {
         setErros([error.message])
       }
       return
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      registrarLog(user.id, 'login')
     }
 
     onLoginSuccess()
