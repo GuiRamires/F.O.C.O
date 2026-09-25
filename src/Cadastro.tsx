@@ -20,6 +20,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
   const [carregando, setCarregando] = useState(false)
   const [termosAceitos, setTermosAceitos] = useState(false)
   const [modalTermosAberto, setModalTermosAberto] = useState(false)
+  const [papel, setPapel] = useState<'aluno' | 'mentor'>('aluno')
 
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault()
@@ -62,7 +63,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
       options: {
         data: {
           nome: nomeLimpo,
-          papel: 'aluno',
+          papel: papel,
         },
       },
     })
@@ -112,6 +113,19 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
             style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
+
+    <div style={{ marginBottom: '1rem' }}>
+      <label>Tipo de Conta</label><br />
+      <select
+        value={papel}
+        onChange={(e) => setPapel(e.target.value as 'aluno' | 'mentor')}
+        style={{ width: '100%', padding: '0.5rem' }}
+      >
+        <option value="aluno">Aluno</option>
+        <option value="mentor">Mentor</option>
+      </select>
+    </div>
+
         <div style={{ marginBottom: '1rem' }}>
           <label>Email</label><br />
           <input

@@ -5,6 +5,7 @@ interface TermosModalProps {
   aberto: boolean
   onAceitar: () => void
   onFechar: () => void
+  somenteLeitura?: boolean
 }
 
 
@@ -38,7 +39,7 @@ Totam porro aliquid numquam magnam ullam consequuntur? Quas non praesentium illu
 Ao aceitar este termo, você confirma que leu e compreendeu as condições acima descritas.
 `.trim()
 
-function TermosModal({ aberto, onAceitar, onFechar }: TermosModalProps) {
+function TermosModal({ aberto, onAceitar, onFechar, somenteLeitura = false }: TermosModalProps) {
   const [scrollCompleto, setScrollCompleto] = useState(false)
   useEffect(() => {
   if (aberto) {
@@ -103,23 +104,31 @@ function TermosModal({ aberto, onAceitar, onFechar }: TermosModalProps) {
           {TEXTO_TERMOS}
         </div>
 
-        {!scrollCompleto && (
+        {!somenteLeitura && !scrollCompleto && (
           <p style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '0.75rem' }}>
-            Role até o final do texto para habilitar o botão de aceite.
+          Role até o final do texto para habilitar o botão de aceite.
           </p>
         )}
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-warning"
-            onClick={onAceitar}
-            disabled={!scrollCompleto}
-          >
-            Aceitar
-          </button>
-          <button className="btn btn-outline-light" onClick={onFechar}>
+          {somenteLeitura ? (
+            <button className="btn btn-outline-light" onClick={onFechar}>
             Fechar
-          </button>
+            </button>
+          ) : (
+            <>
+              <button
+                className="btn btn-warning"
+                onClick={onAceitar}
+                disabled={!scrollCompleto}
+              >
+                Aceitar
+              </button>
+              <button className="btn btn-outline-light" onClick={onFechar}>
+                Fechar
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
