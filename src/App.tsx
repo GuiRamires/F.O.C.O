@@ -7,6 +7,10 @@ import NovoFoco from './NovoFoco'
 import { handleListarFocos } from './controllers/focoController'
 import type { FocoComProgresso } from './services/focoService'
 import Sidebar from './Sidebar'
+import { getPapelUsuario } from './repositories/focoRepository'
+import PainelAdmin from './PainelAdmin'
+
+
 
 function App() {
   const [logado, setLogado] = useState(false)
@@ -18,6 +22,8 @@ function App() {
   const [carregandoFocos, setCarregandoFocos] = useState(false)
   const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco'>('lista')
   const [sidebarAberta, setSidebarAberta] = useState(false)
+
+  const [papel, setPapel] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,6 +45,7 @@ function App() {
   useEffect(() => {
     if (logado && userId) {
       carregarFocos(userId)
+      getPapelUsuario(userId).then(setPapel)
     }
   }, [logado, userId])
 
@@ -69,6 +76,7 @@ function App() {
         />
       )
     }
+   
     return (
       <Login
         onLoginSuccess={() => setLogado(true)}
@@ -76,6 +84,16 @@ function App() {
       />
     )
   }
+
+
+
+
+  if (papel === 'admin') {
+    return <PainelAdmin onLogout={handleLogout} />
+  }
+
+
+
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>

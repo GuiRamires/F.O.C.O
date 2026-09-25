@@ -59,3 +59,24 @@ export async function criarFoco(userId: string, foco: NovoFoco): Promise<void> {
   }
 }
 
+
+
+
+
+
+
+
+export async function getPapelUsuario(userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('papel')
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    console.error('Erro ao buscar papel do usuário:', error.message)
+    return null
+  }
+
+  return data.papel
+}
