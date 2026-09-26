@@ -157,7 +157,7 @@ Em caráter de transparência, reconhecemos as seguintes limitações da present
 Esta política pode ser atualizada para refletir mudanças no sistema ou na legislação aplicável. A data e o número de versão constam no topo deste documento.
 
 
-*Última atualização: [25/09/2025].
+Última atualização: [25/09/2025].
 `.trim()
 
 function TermosModal({ aberto, onAceitar, onFechar, somenteLeitura = false }: TermosModalProps) {

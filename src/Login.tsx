@@ -94,7 +94,7 @@ function Login({ onLoginSuccess, onIrParaCadastro }: LoginProps) {
                 padding: 0,
               }}
             >
-              {mostrarSenha ? '🙈' : '👁️'}
+              {mostrarSenha ? '👁' : '👁'}
             </button>
           </div>
         </div>

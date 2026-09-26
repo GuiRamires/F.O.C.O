@@ -156,7 +156,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
             padding: 0,
          }}
   >
-    {mostrarSenha ? '' : '👁️'}
+    {mostrarSenha ? '👁' : '👁'}
   </button>
 </div>
           <BarraForcaSenha senha={senha} nome={nome} email={email} />
