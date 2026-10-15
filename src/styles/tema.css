@@ -1,0 +1,40 @@
+:root {
+  --fonte-principal: 'Aldrich', sans-serif;
+
+  --fundo-topo: #090022;
+  --fundo-meio: #0D0016;
+  --fundo-base: #000000;
+
+  --cor-texto: #FFFFFF;
+  --cor-rodando: #FFFFFF;
+  --cor-pausado: #FF9500;
+  --cor-concluido-anel: #3FEB26;
+  --cor-concluido-digito: #149900;
+  --cor-primaria: #008CFF;
+
+  --progresso-inicio: #6CBDFF;
+  --progresso-fim: #0079DD;
+  --progresso-gradiente: linear-gradient(
+    90deg,
+    var(--progresso-inicio) 0%,
+    var(--progresso-fim) 100%
+  );
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--fonte-principal);
+  color: var(--cor-texto);
+  background: linear-gradient(
+    180deg,
+    var(--fundo-topo) 0%,
+    var(--fundo-meio) 24%,
+    var(--fundo-base) 100%
+  );
+  background-attachment: fixed;
+}
+
+.texto-reforcado {
+  -webkit-text-stroke: 1px currentColor;
+}

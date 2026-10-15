@@ -2,14 +2,6 @@
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: #0f0f0f;
-  color: rgba(255, 255, 255, 0.87);
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
 /* Container que fica fixo no canto da tela, empilhando os toasts */
 .toast-container {
   position: fixed;
