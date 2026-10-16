@@ -8,6 +8,10 @@ import {
   progressoSessao,
   estadoDaSessao,
   formatarTempo,
+  converterHorasMinutos,
+  descreverDuracao,
+  validarDuracao,
+  ATALHOS_DURACAO_MINUTOS,
 } from './sessaoService'
 
 const minutos = (n: number) => n * 60 * 1000
@@ -70,5 +74,50 @@ describe('sessaoService', () => {
     expect(formatarTempo(minutos(25))).toBe('00:25:00')
     expect(formatarTempo(3_725_000)).toBe('01:02:05')
     expect(formatarTempo(400)).toBe('00:00:01')
+  })
+})
+
+describe('duração da sessão', () => {
+  it('converte HH:MM em minutos', () => {
+    expect(converterHorasMinutos('00:50')).toBe(50)
+    expect(converterHorasMinutos('1:30')).toBe(90)
+    expect(converterHorasMinutos(' 02:00 ')).toBe(120)
+  })
+
+  it('recusa textos fora do formato', () => {
+    expect(converterHorasMinutos('01:75')).toBeNull()
+    expect(converterHorasMinutos('abc')).toBeNull()
+    expect(converterHorasMinutos('')).toBeNull()
+    expect(converterHorasMinutos('1:5')).toBeNull()
+  })
+
+  it('aceita os limites exatos de 5 e 180 minutos', () => {
+    expect(validarDuracao(5).valida).toBe(true)
+    expect(validarDuracao(180).valida).toBe(true)
+  })
+
+  it('recusa menos de 5 minutos', () => {
+    const resultado = validarDuracao(4)
+    expect(resultado.valida).toBe(false)
+  })
+
+  it('recusa mais de 3 horas com a mensagem de pausa', () => {
+    const resultado = validarDuracao(181)
+    expect(resultado.valida).toBe(false)
+    if (!resultado.valida) {
+      expect(resultado.mensagem).toContain('até 3 h')
+    }
+  })
+
+  it('todos os atalhos são durações válidas', () => {
+    for (const minutos of ATALHOS_DURACAO_MINUTOS) {
+      expect(validarDuracao(minutos).valida).toBe(true)
+    }
+  })
+
+  it('descreve a duração de forma legível', () => {
+    expect(descreverDuracao(50)).toBe('50 min')
+    expect(descreverDuracao(60)).toBe('1 h')
+    expect(descreverDuracao(90)).toBe('1 h 30 min')
   })
 })
