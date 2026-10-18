@@ -10,7 +10,8 @@ import Sidebar from './Sidebar'
 import { getPapelUsuario } from './repositories/focoRepository'
 import PainelAdmin from './PainelAdmin'
 import TelaPreparacao from './TelaPreparacao'
-import { iniciarSessao, formatarTempo, type Sessao } from './services/sessaoService'
+import TelaTimer from './TelaTimer'
+import { iniciarSessao, pausarSessao, retomarSessao, type Sessao } from './services/sessaoService'
 
 
 
@@ -111,15 +112,19 @@ function App() {
 
 if (telaAtual === 'sessao' && focoSelecionado && sessaoAtual) {
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <p>Sessão iniciada: {focoSelecionado.titulo} por {formatarTempo(sessaoAtual.duracaoMs)}</p>
-      <button className="btn btn-primary" onClick={() => { setSessaoAtual(null); setTelaAtual('lista') }}>
-        Voltar
-      </button>
-    </div>
+    <TelaTimer
+      sessao={sessaoAtual}
+      tituloFoco={focoSelecionado.titulo}
+      porcentagemFoco={focoSelecionado.porcentagem}
+      onPausar={(instante) => setSessaoAtual((atual) => (atual ? pausarSessao(atual, instante) : atual))}
+      onRetomar={(instante) => setSessaoAtual((atual) => (atual ? retomarSessao(atual, instante) : atual))}
+      onConcluir={() => {
+        setSessaoAtual(null)
+        setTelaAtual('lista')
+      }}
+    />
   )
 }
-
 
 
   return (
