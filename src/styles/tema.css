@@ -19,6 +19,8 @@
     var(--progresso-inicio) 0%,
     var(--progresso-fim) 100%
   );
+
+  --menu-fundo: #021B33;
 }
 
 body {

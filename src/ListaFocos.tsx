@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import type { FocoComProgresso } from './services/focoService'
 import { handleAtribuirEstrela, handleRemoverEstrela } from './controllers/estrelaController'
+import MenuAcoesFoco from './MenuAcoesFoco'
 
 interface ListaFocosProps {
   focos: FocoComProgresso[]
   userId: string
   onFocoAtualizado: () => void
+  onConcentrar: (foco: FocoComProgresso) => void
 }
 
-function ListaFocos({ focos, userId, onFocoAtualizado }: ListaFocosProps) {
+function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFocosProps) {
   const [processando, setProcessando] = useState<string | null>(null)
+  const [menuAbertoId, setMenuAbertoId] = useState<string | null>(null)
 
   const focosAtivos = focos.filter((f) => f.status === 'ativo')
   const focosLaboratorio = focos.filter((f) => f.status === 'laboratorio_sonhos')
@@ -54,6 +57,8 @@ function ListaFocos({ focos, userId, onFocoAtualizado }: ListaFocosProps) {
 
   return (
     <div>
+      {menuAbertoId && <div className="fundo-escurecido" aria-hidden="true" />}
+      
       {focosAtivos.length > 0 && (
         <>
           <h5 style={{ marginBottom: '1rem' }}>Seu FOCO Atual</h5>
@@ -64,6 +69,13 @@ function ListaFocos({ focos, userId, onFocoAtualizado }: ListaFocosProps) {
               podeReceberEstrela={index < 3}
               processando={processando === foco.id}
               onCliqueEstrela={() => handleCliqueEstrela(foco)}
+              menuAberto={menuAbertoId === foco.id}
+              onAbrirMenu={() => setMenuAbertoId(foco.id)}
+              onFecharMenu={() => setMenuAbertoId(null)}
+              onConcentrar={() => {
+                setMenuAbertoId(null)
+                onConcentrar(foco)
+              }}
             />
           ))}
         </>
@@ -89,11 +101,27 @@ interface CardFocoProps {
   podeReceberEstrela: boolean
   processando?: boolean
   onCliqueEstrela?: () => void
+  menuAberto?: boolean
+  onAbrirMenu?: () => void
+  onFecharMenu?: () => void
+  onConcentrar?: () => void
 }
 
-function CardFoco({ foco, desativado = false, podeReceberEstrela, processando, onCliqueEstrela }: CardFocoProps) {
+function CardFoco({
+  foco,
+  desativado = false,
+  podeReceberEstrela,
+  processando,
+  onCliqueEstrela,
+  menuAberto = false,
+  onAbrirMenu,
+  onFecharMenu,
+  onConcentrar,
+}: CardFocoProps) {
   return (
     <div
+      className={`card-foco ${onAbrirMenu ? 'card-foco--clicavel' : ''} ${menuAberto ? 'card-foco--selecionado' : ''}`}
+      onClick={onAbrirMenu}
       style={{
         border: '1px solid #444',
         borderRadius: '8px',
@@ -111,7 +139,10 @@ function CardFoco({ foco, desativado = false, podeReceberEstrela, processando, o
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
         {podeReceberEstrela ? (
           <button
-            onClick={onCliqueEstrela}
+            onClick={(evento) => {
+              evento.stopPropagation()
+              onCliqueEstrela?.()
+            }}
             disabled={processando}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: foco.tem_estrela ? '#000' : '#666' }}
           >
@@ -122,6 +153,10 @@ function CardFoco({ foco, desativado = false, podeReceberEstrela, processando, o
         )}
         <span style={{ marginLeft: 'auto' }}>{foco.porcentagem.toFixed(0)}%</span>
       </div>
+
+      {menuAberto && onConcentrar && onFecharMenu && (
+        <MenuAcoesFoco onConcentrar={onConcentrar} onFechar={onFecharMenu} />
+      )}
     </div>
   )
 }

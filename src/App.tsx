@@ -20,7 +20,8 @@ function App() {
 
   const [focos, setFocos] = useState<FocoComProgresso[]>([])
   const [carregandoFocos, setCarregandoFocos] = useState(false)
-  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco'>('lista')
+  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'concentrar'>('lista')
+  const [focoSelecionado, setFocoSelecionado] = useState<FocoComProgresso | null>(null)
   const [sidebarAberta, setSidebarAberta] = useState(false)
 
   const [papel, setPapel] = useState<string | null>(null)
@@ -92,6 +93,16 @@ function App() {
     return <PainelAdmin onLogout={handleLogout} />
   }
 
+  if (telaAtual === 'concentrar' && focoSelecionado) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>Preparação da sessão: {focoSelecionado.titulo}</p>
+        <button className="btn btn-primary" onClick={() => setTelaAtual('lista')}>
+          Voltar
+        </button>
+      </div>
+    )
+  }
 
 
 
@@ -134,6 +145,10 @@ function App() {
           focos={focos}
           userId={userId!}
           onFocoAtualizado={() => carregarFocos(userId!)}
+          onConcentrar={(foco) => {
+            setFocoSelecionado(foco)
+            setTelaAtual('concentrar')
+          }}
         />
       )}
     </div>
