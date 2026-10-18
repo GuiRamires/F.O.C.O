@@ -9,6 +9,8 @@ import type { FocoComProgresso } from './services/focoService'
 import Sidebar from './Sidebar'
 import { getPapelUsuario } from './repositories/focoRepository'
 import PainelAdmin from './PainelAdmin'
+import TelaPreparacao from './TelaPreparacao'
+import { iniciarSessao, formatarTempo, type Sessao } from './services/sessaoService'
 
 
 
@@ -20,9 +22,10 @@ function App() {
 
   const [focos, setFocos] = useState<FocoComProgresso[]>([])
   const [carregandoFocos, setCarregandoFocos] = useState(false)
-  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'concentrar'>('lista')
+  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'preparacao' | 'sessao'>('lista')
   const [focoSelecionado, setFocoSelecionado] = useState<FocoComProgresso | null>(null)
   const [sidebarAberta, setSidebarAberta] = useState(false)
+  const [sessaoAtual, setSessaoAtual] = useState<Sessao | null>(null)
 
   const [papel, setPapel] = useState<string | null>(null)
 
@@ -93,16 +96,29 @@ function App() {
     return <PainelAdmin onLogout={handleLogout} />
   }
 
-  if (telaAtual === 'concentrar' && focoSelecionado) {
-    return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <p>Preparação da sessão: {focoSelecionado.titulo}</p>
-        <button className="btn btn-primary" onClick={() => setTelaAtual('lista')}>
-          Voltar
-        </button>
-      </div>
-    )
-  }
+  if (telaAtual === 'preparacao' && focoSelecionado) {
+  return (
+    <TelaPreparacao
+      tituloFoco={focoSelecionado.titulo}
+      onVoltar={() => setTelaAtual('lista')}
+      onIniciar={(minutos) => {
+        setSessaoAtual(iniciarSessao(focoSelecionado.id, minutos, Date.now()))
+        setTelaAtual('sessao')
+      }}
+    />
+  )
+}
+
+if (telaAtual === 'sessao' && focoSelecionado && sessaoAtual) {
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <p>Sessão iniciada: {focoSelecionado.titulo} por {formatarTempo(sessaoAtual.duracaoMs)}</p>
+      <button className="btn btn-primary" onClick={() => { setSessaoAtual(null); setTelaAtual('lista') }}>
+        Voltar
+      </button>
+    </div>
+  )
+}
 
 
 
@@ -147,7 +163,7 @@ function App() {
           onFocoAtualizado={() => carregarFocos(userId!)}
           onConcentrar={(foco) => {
             setFocoSelecionado(foco)
-            setTelaAtual('concentrar')
+            setTelaAtual('preparacao')
           }}
         />
       )}

@@ -12,6 +12,10 @@ import {
   descreverDuracao,
   validarDuracao,
   ATALHOS_DURACAO_MINUTOS,
+  formatarHorasMinutos,
+  mascararHorasMinutos,
+  validarTextoDuracao,
+
 } from './sessaoService'
 
 const minutos = (n: number) => n * 60 * 1000
@@ -120,4 +124,33 @@ describe('duração da sessão', () => {
     expect(descreverDuracao(60)).toBe('1 h')
     expect(descreverDuracao(90)).toBe('1 h 30 min')
   })
+
+  
+
+  it('formata minutos como HH:MM', () => {
+  expect(formatarHorasMinutos(25)).toBe('00:25')
+  expect(formatarHorasMinutos(90)).toBe('01:30')
+  expect(formatarHorasMinutos(180)).toBe('03:00')
+})
+
+it('formatar e converter fazem o caminho de ida e volta', () => {
+  for (const minutos of ATALHOS_DURACAO_MINUTOS) {
+    expect(converterHorasMinutos(formatarHorasMinutos(minutos))).toBe(minutos)
+  }
+})
+
+it('a máscara funciona como um timer: os dígitos entram pela direita', () => {
+  expect(mascararHorasMinutos('5')).toBe('00:05')
+  expect(mascararHorasMinutos('130')).toBe('01:30')
+  expect(mascararHorasMinutos('01:305')).toBe('13:05')
+  expect(mascararHorasMinutos('01:3')).toBe('00:13')
+  expect(mascararHorasMinutos('')).toBe('00:00')
+})
+
+it('valida o texto digitado: formato errado, fora do limite e válido', () => {
+  expect(validarTextoDuracao('1h30').valida).toBe(false)
+  expect(validarTextoDuracao('00:04').valida).toBe(false)
+  expect(validarTextoDuracao('01:30')).toEqual({ valida: true, minutos: 90 })
+})
+  
 })

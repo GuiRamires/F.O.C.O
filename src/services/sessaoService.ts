@@ -99,3 +99,22 @@ export function validarDuracao(minutos: number): ResultadoDuracao {
   }
   return { valida: true, minutos }
 }
+
+export function formatarHorasMinutos(minutos: number): string {
+  const horas = Math.floor(minutos / 60)
+  const resto = minutos % 60
+  return `${String(horas).padStart(2, '0')}:${String(resto).padStart(2, '0')}`
+}
+
+export function mascararHorasMinutos(valor: string): string {
+  const digitos = valor.replace(/\D/g, '').slice(-4).padStart(4, '0')
+  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`
+}
+
+export function validarTextoDuracao(texto: string): ResultadoDuracao {
+  const minutos = converterHorasMinutos(texto)
+  if (minutos === null) {
+   return { valida: false, mensagem: 'Use HH:MM, com os minutos até 59. Exemplo: 01:30.' }
+  }
+  return validarDuracao(minutos)
+}
