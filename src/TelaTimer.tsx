@@ -7,6 +7,7 @@ import {
   type Sessao,
 } from './services/sessaoService'
 import './styles/timer.css'
+import { pararAlerta, tocarAlerta } from './utils/alertaSonoro'
 
 interface TelaTimerProps {
   sessao: Sessao
@@ -26,6 +27,17 @@ function TelaTimer({ sessao, tituloFoco, porcentagemFoco, onPausar, onRetomar, o
     const intervalo = setInterval(() => setAgora(Date.now()), INTERVALO_ATUALIZACAO_MS)
     return () => clearInterval(intervalo)
   }, [])
+
+  useEffect(() => {
+  if (sessao.pausadaEm !== null) return
+  const restante = tempoRestanteMs(sessao, Date.now())
+  if (restante === 0) return
+  const alarme = setTimeout(tocarAlerta, restante)
+  return () => {
+  clearTimeout(alarme)
+  pararAlerta()
+  }
+  }, [sessao])
 
   const estado = estadoDaSessao(sessao, agora)
   const progresso = progressoSessao(sessao, agora)

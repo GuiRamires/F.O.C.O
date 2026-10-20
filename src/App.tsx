@@ -12,7 +12,7 @@ import PainelAdmin from './PainelAdmin'
 import TelaPreparacao from './TelaPreparacao'
 import TelaTimer from './TelaTimer'
 import { iniciarSessao, pausarSessao, retomarSessao, type Sessao } from './services/sessaoService'
-
+import { prepararAlerta } from './utils/alertaSonoro'
 
 
 function App() {
@@ -103,6 +103,7 @@ function App() {
       tituloFoco={focoSelecionado.titulo}
       onVoltar={() => setTelaAtual('lista')}
       onIniciar={(minutos) => {
+        prepararAlerta()
         setSessaoAtual(iniciarSessao(focoSelecionado.id, minutos, Date.now()))
         setTelaAtual('sessao')
       }}
