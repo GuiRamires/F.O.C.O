@@ -15,6 +15,7 @@ import {
   formatarHorasMinutos,
   mascararHorasMinutos,
   validarTextoDuracao,
+  sessaoAoReabrir,
 
 } from './sessaoService'
 
@@ -153,4 +154,30 @@ it('valida o texto digitado: formato errado, fora do limite e válido', () => {
   expect(validarTextoDuracao('01:30')).toEqual({ valida: true, minutos: 90 })
 })
   
+})
+
+
+
+describe('reabertura do app', () => {
+  it('pausa a sessão no último sinal: o tempo com o app fechado não conta', () => {
+    const sessao = iniciarSessao('foco-1', 25, INICIO)
+    const reaberta = sessaoAoReabrir(sessao, INICIO + minutos(10))
+
+    expect(estadoDaSessao(reaberta, INICIO + minutos(60))).toBe('pausada')
+    expect(tempoDecorridoMs(reaberta, INICIO + minutos(60))).toBe(minutos(10))
+  })
+
+  it('mantém como está uma sessão que já estava pausada', () => {
+    let sessao = iniciarSessao('foco-1', 25, INICIO)
+    sessao = pausarSessao(sessao, INICIO + minutos(5))
+
+    expect(sessaoAoReabrir(sessao, INICIO + minutos(30))).toEqual(sessao)
+  })
+
+  it('uma sessão que terminou antes de fechar continua concluída', () => {
+    const sessao = iniciarSessao('foco-1', 25, INICIO)
+    const reaberta = sessaoAoReabrir(sessao, INICIO + minutos(26))
+
+    expect(estadoDaSessao(reaberta, INICIO + minutos(90))).toBe('concluida')
+  })
 })

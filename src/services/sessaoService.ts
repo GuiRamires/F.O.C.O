@@ -118,3 +118,16 @@ export function validarTextoDuracao(texto: string): ResultadoDuracao {
   }
   return validarDuracao(minutos)
 }
+
+export const PALAVRA_DESCARTAR = 'DESCARTAR'
+
+export interface SessaoEmAndamento {
+  usuarioId: string
+  sessao: Sessao
+  tituloFoco: string
+  porcentagemFoco: number
+}
+
+export function sessaoAoReabrir(sessao: Sessao, ultimoSinal: number): Sessao {
+  return pausarSessao(sessao, ultimoSinal)
+}

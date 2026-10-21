@@ -25,6 +25,7 @@ function TelaPreparacao({ tituloFoco, onIniciar, onVoltar }: TelaPreparacaoProps
   const resultado = validarTextoDuracao(textoDuracao)
   const minutosValidos = resultado.valida ? resultado.minutos : null
   const mensagemErro = mostrarErro && !resultado.valida ? resultado.mensagem : ''
+  const confirmacaoAberta = confirmando && minutosValidos !== null
 
   function escolherAtalho(minutos: number) {
     setTextoDuracao(formatarHorasMinutos(minutos))
@@ -56,7 +57,11 @@ function TelaPreparacao({ tituloFoco, onIniciar, onVoltar }: TelaPreparacaoProps
 
       <form className="preparacao__centro" onSubmit={pedirConfirmacao}>
         <div className="preparacao__circulo">
-          {!confirmando && (
+          {confirmacaoAberta ? (
+            <p className="preparacao__rotulo preparacao__rotulo--confirmacao">
+              Você vai se concentrar em <strong>{tituloFoco}</strong>
+            </p>
+          ) : (
             <label className="preparacao__rotulo" htmlFor="duracao">
               Ou digite o tempo (HH:MM)
             </label>
@@ -64,37 +69,33 @@ function TelaPreparacao({ tituloFoco, onIniciar, onVoltar }: TelaPreparacaoProps
 
           <div className={`preparacao__tempo texto-reforcado ${mensagemErro ? 'preparacao__tempo--erro' : ''}`}>
             <span aria-hidden="true">
-                <span className="preparacao__editavel">{textoDuracao}</span>:00
+              <span className="preparacao__editavel">{textoDuracao}</span>:00
             </span>
             <input
-                id="duracao"
-                className="preparacao__campo"
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                value={textoDuracao}
-                readOnly={confirmando}
-                onChange={(evento) => setTextoDuracao(mascararHorasMinutos(evento.target.value))}
-                onFocus={(evento) => evento.currentTarget.select()}
-                onClick={(evento) => evento.currentTarget.select()}
-                onBlur={() => setMostrarErro(true)}
-                aria-invalid={mensagemErro !== ''}
-                aria-describedby="duracao-erro"
+              id="duracao"
+              className="preparacao__campo"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              value={textoDuracao}
+              readOnly={confirmando}
+              onChange={(evento) => setTextoDuracao(mascararHorasMinutos(evento.target.value))}
+              onFocus={(evento) => evento.currentTarget.select()}
+              onClick={(evento) => evento.currentTarget.select()}
+              onBlur={() => setMostrarErro(true)}
+              aria-invalid={mensagemErro !== ''}
+              aria-describedby="duracao-erro"
             />
-            </div>
+          </div>
 
-          <p id="duracao-erro" className="preparacao__erro" role="alert">
-            {mensagemErro}
+         <p id="duracao-erro" className="preparacao__erro" role="alert">
+              {mensagemErro}
           </p>
         </div>
 
-        {confirmando && minutosValidos !== null ? (
+        {confirmacaoAberta ? (
           <div className="preparacao__acoes">
-            <p>
-              Você vai se concentrar em <strong>{tituloFoco}</strong> por{' '}
-              <strong>{descreverDuracao(minutosValidos)}</strong>.
-            </p>
-            <p>O F.O.C.O. ficará bloqueado até o fim da sessão.</p>
+            <p className="preparacao__bloqueio">O F.O.C.O. ficará bloqueado até o fim da sessão.</p>
             <button type="button" className="preparacao__botao" onClick={confirmarInicio}>
               Sim, começar
             </button>

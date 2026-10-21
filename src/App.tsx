@@ -5,15 +5,16 @@ import Cadastro from './Cadastro'
 import ListaFocos from './ListaFocos'
 import NovoFoco from './NovoFoco'
 import { handleListarFocos } from './controllers/focoController'
+import { handleConfirmarDescarte, handleRestaurarSessao } from './controllers/sessaoController'
 import type { FocoComProgresso } from './services/focoService'
 import Sidebar from './Sidebar'
 import { getPapelUsuario } from './repositories/focoRepository'
 import PainelAdmin from './PainelAdmin'
 import TelaPreparacao from './TelaPreparacao'
 import TelaTimer from './TelaTimer'
-import { iniciarSessao, pausarSessao, retomarSessao, type Sessao } from './services/sessaoService'
+import { iniciarSessao, pausarSessao, retomarSessao, type SessaoEmAndamento } from './services/sessaoService'
 import { prepararAlerta } from './utils/alertaSonoro'
-
+import { usePersistirSessao } from './hooks/usePersistirSessao'
 
 function App() {
   const [logado, setLogado] = useState(false)
@@ -23,12 +24,15 @@ function App() {
 
   const [focos, setFocos] = useState<FocoComProgresso[]>([])
   const [carregandoFocos, setCarregandoFocos] = useState(false)
-  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'preparacao' | 'sessao'>('lista')
+  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'preparacao'>('lista')
   const [focoSelecionado, setFocoSelecionado] = useState<FocoComProgresso | null>(null)
   const [sidebarAberta, setSidebarAberta] = useState(false)
-  const [sessaoAtual, setSessaoAtual] = useState<Sessao | null>(null)
+  const [emAndamento, setEmAndamento] = useState<SessaoEmAndamento | null>(() => handleRestaurarSessao())
+  const [retomada, setRetomada] = useState(emAndamento !== null)
 
   const [papel, setPapel] = useState<string | null>(null)
+
+  usePersistirSessao(emAndamento)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -68,6 +72,12 @@ function App() {
     setTelaAtual('lista')
   }
 
+  function encerrarSessao() {
+    setEmAndamento(null)
+    setRetomada(false)
+    setTelaAtual('lista')
+  }
+
   if (verificandoSessao) {
     return <p style={{ padding: '2rem' }}>Carregando...</p>
   }
@@ -81,7 +91,7 @@ function App() {
         />
       )
     }
-   
+
     return (
       <Login
         onLoginSuccess={() => setLogado(true)}
@@ -90,66 +100,76 @@ function App() {
     )
   }
 
+  const sessaoDoUsuario = emAndamento && emAndamento.usuarioId === userId ? emAndamento : null
 
-
+  if (sessaoDoUsuario) {
+    return (
+      <TelaTimer
+        sessao={sessaoDoUsuario.sessao}
+        tituloFoco={sessaoDoUsuario.tituloFoco}
+        porcentagemFoco={sessaoDoUsuario.porcentagemFoco}
+        retomada={retomada}
+        onPausar={(instante) =>
+          setEmAndamento((atual) => atual && { ...atual, sessao: pausarSessao(atual.sessao, instante) })
+        }
+        onRetomar={(instante) => {
+          prepararAlerta()
+          setRetomada(false)
+          setEmAndamento((atual) => atual && { ...atual, sessao: retomarSessao(atual.sessao, instante) })
+        }}
+        onDescartar={(textoDigitado) => {
+          if (handleConfirmarDescarte(textoDigitado)) encerrarSessao()
+        }}
+        onConcluir={encerrarSessao}
+      />
+    )
+  }
 
   if (papel === 'admin') {
     return <PainelAdmin onLogout={handleLogout} />
   }
 
-  if (telaAtual === 'preparacao' && focoSelecionado) {
-  return (
-    <TelaPreparacao
-      tituloFoco={focoSelecionado.titulo}
-      onVoltar={() => setTelaAtual('lista')}
-      onIniciar={(minutos) => {
-        prepararAlerta()
-        setSessaoAtual(iniciarSessao(focoSelecionado.id, minutos, Date.now()))
-        setTelaAtual('sessao')
-      }}
-    />
-  )
-}
-
-if (telaAtual === 'sessao' && focoSelecionado && sessaoAtual) {
-  return (
-    <TelaTimer
-      sessao={sessaoAtual}
-      tituloFoco={focoSelecionado.titulo}
-      porcentagemFoco={focoSelecionado.porcentagem}
-      onPausar={(instante) => setSessaoAtual((atual) => (atual ? pausarSessao(atual, instante) : atual))}
-      onRetomar={(instante) => setSessaoAtual((atual) => (atual ? retomarSessao(atual, instante) : atual))}
-      onConcluir={() => {
-        setSessaoAtual(null)
-        setTelaAtual('lista')
-      }}
-    />
-  )
-}
-
+  if (telaAtual === 'preparacao' && focoSelecionado && userId) {
+    return (
+      <TelaPreparacao
+        tituloFoco={focoSelecionado.titulo}
+        onVoltar={() => setTelaAtual('lista')}
+        onIniciar={(minutos) => {
+          prepararAlerta()
+          setRetomada(false)
+          setEmAndamento({
+            usuarioId: userId,
+            sessao: iniciarSessao(focoSelecionado.id, minutos, Date.now()),
+            tituloFoco: focoSelecionado.titulo,
+            porcentagemFoco: focoSelecionado.porcentagem,
+          })
+        }}
+      />
+    )
+  }
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-  <button
-    onClick={() => setSidebarAberta(true)}
-    style={{ background: 'none', border: '1px solid #444', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem' }}
-  >
-    👤
-  </button>
-  <h1 style={{ fontSize: '1.5rem' }}>F.O.C.O.</h1>
-  {telaAtual === 'lista' && (
-    <button className="btn btn-primary" onClick={() => setTelaAtual('novoFoco')}>
-      +
-    </button>
-  )}
-</div>
+        <button
+          onClick={() => setSidebarAberta(true)}
+          style={{ background: 'none', border: '1px solid #444', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem' }}
+        >
+          👤
+        </button>
+        <h1 style={{ fontSize: '1.5rem' }}>F.O.C.O.</h1>
+        {telaAtual === 'lista' && (
+          <button className="btn btn-primary" onClick={() => setTelaAtual('novoFoco')}>
+            +
+          </button>
+        )}
+      </div>
 
-<Sidebar
-  aberta={sidebarAberta}
-  onFechar={() => setSidebarAberta(false)}
-  onLogout={handleLogout}
-/>
+      <Sidebar
+        aberta={sidebarAberta}
+        onFechar={() => setSidebarAberta(false)}
+        onLogout={handleLogout}
+      />
 
       {carregandoFocos ? (
         <p>Carregando seus Focos...</p>

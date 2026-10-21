@@ -6,21 +6,33 @@ import {
   tempoRestanteMs,
   type Sessao,
 } from './services/sessaoService'
-import './styles/timer.css'
 import { pararAlerta, tocarAlerta } from './utils/alertaSonoro'
+import PainelRetomada from './PainelRetomada'
+import './styles/timer.css'
 
 interface TelaTimerProps {
   sessao: Sessao
   tituloFoco: string
   porcentagemFoco: number
+  retomada: boolean
   onPausar: (instante: number) => void
   onRetomar: (instante: number) => void
+  onDescartar: (textoDigitado: string) => void
   onConcluir: () => void
 }
 
 const INTERVALO_ATUALIZACAO_MS = 250
 
-function TelaTimer({ sessao, tituloFoco, porcentagemFoco, onPausar, onRetomar, onConcluir }: TelaTimerProps) {
+function TelaTimer({
+  sessao,
+  tituloFoco,
+  porcentagemFoco,
+  retomada,
+  onPausar,
+  onRetomar,
+  onDescartar,
+  onConcluir,
+}: TelaTimerProps) {
   const [agora, setAgora] = useState(() => Date.now())
 
   useEffect(() => {
@@ -29,19 +41,20 @@ function TelaTimer({ sessao, tituloFoco, porcentagemFoco, onPausar, onRetomar, o
   }, [])
 
   useEffect(() => {
-  if (sessao.pausadaEm !== null) return
-  const restante = tempoRestanteMs(sessao, Date.now())
-  if (restante === 0) return
-  const alarme = setTimeout(tocarAlerta, restante)
-  return () => {
-  clearTimeout(alarme)
-  pararAlerta()
-  }
+    if (sessao.pausadaEm !== null) return
+    const restante = tempoRestanteMs(sessao, Date.now())
+    if (restante === 0) return
+    const alarme = setTimeout(tocarAlerta, restante)
+    return () => {
+      clearTimeout(alarme)
+      pararAlerta()
+    }
   }, [sessao])
 
   const estado = estadoDaSessao(sessao, agora)
   const progresso = progressoSessao(sessao, agora)
   const pausada = estado === 'pausada'
+  const mostrarRetomada = retomada && pausada
   const porcentagem = Math.round(Math.min(100, porcentagemFoco))
 
   function alternarPausa() {
@@ -57,7 +70,7 @@ function TelaTimer({ sessao, tituloFoco, porcentagemFoco, onPausar, onRetomar, o
   return (
     <main className={`timer timer--${estado}`}>
       <header className="timer__topo">
-        {estado !== 'concluida' && (
+        {estado !== 'concluida' && !mostrarRetomada && (
           <button
             type="button"
             className="timer__controle"
@@ -88,15 +101,15 @@ function TelaTimer({ sessao, tituloFoco, porcentagemFoco, onPausar, onRetomar, o
           </span>
         </div>
 
-        <p className="timer__mensagem" aria-live="polite">
-          {pausada && (
-            <>
-              Ocorreu um imprevisto? Sem problemas.
-              <br />
-              O aplicativo está bloqueado até que você volte.
-            </>
-          )}
-        </p>
+<p className="timer__mensagem" aria-live="polite">
+  {pausada && (
+    <>
+      Ocorreu um imprevisto? Sem problemas.
+      <br />
+      O aplicativo está bloqueado até que você volte.
+    </>
+  )}
+</p>
       </section>
 
       <footer className="timer__rodape">
@@ -126,6 +139,9 @@ function TelaTimer({ sessao, tituloFoco, porcentagemFoco, onPausar, onRetomar, o
           </>
         )}
       </footer>
+
+      {mostrarRetomada && <PainelRetomada onContinuar={alternarPausa} onDescartar={onDescartar} />}
+      
     </main>
   )
 }
