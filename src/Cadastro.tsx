@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from './supabaseClient'
-import { validarSenha } from './utils/validarSenha'
+import { validarSenha } from './services/validarSenha'
 import BarraForcaSenha from './BarraForcaSenha'
 import TermosModal from './TermosModal'
 import { registrarLog } from './services/logService'

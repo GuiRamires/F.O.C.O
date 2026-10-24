@@ -1,4 +1,4 @@
-import { calcularForcaSenha } from './utils/validarSenha'
+import { calcularForcaSenha } from './services/validarSenha'
 
 interface BarraForcaSenhaProps {
   senha: string

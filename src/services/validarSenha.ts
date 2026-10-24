@@ -3,6 +3,8 @@ export interface ResultadoValidacaoSenha {
   erros: string[]
 }
 
+const TAMANHO_MINIMO_TRECHO_PESSOAL = 3
+
 function temSequencia(caracteres: string, tamanhoMinimo = 4): boolean {
   for (let i = 0; i <= caracteres.length - tamanhoMinimo; i++) {
     let crescente = true
@@ -43,25 +45,25 @@ function obterProblemasSenha(senha: string, nome: string, email: string): string
   }
 
   const senhaMinuscula = senha.toLowerCase()
-  const nomeMinusculo = nome.trim().toLowerCase()
-  const emailUsuario = email.split('@')[0]?.toLowerCase() ?? ''
 
-  if (nomeMinusculo && senhaMinuscula.includes(nomeMinusculo)) {
+  const partesNome = nome
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((parte) => parte.length >= TAMANHO_MINIMO_TRECHO_PESSOAL)
+
+  if (partesNome.some((parte) => senhaMinuscula.includes(parte))) {
     problemas.push('A senha não deve conter seu nome.')
   }
 
-  if (emailUsuario && senhaMinuscula.includes(emailUsuario)) {
+  const usuarioEmail = email.split('@')[0]?.toLowerCase() ?? ''
+
+  if (usuarioEmail.length >= TAMANHO_MINIMO_TRECHO_PESSOAL && senhaMinuscula.includes(usuarioEmail)) {
     problemas.push('A senha não deve conter parte do seu e-mail.')
   }
 
-  const digitos = senha.replace(/[^0-9]/g, '')
-  if (temSequencia(digitos)) {
-    problemas.push('A senha não deve conter sequências numéricas óbvias (ex: 1234).')
-  }
-
-  const letras = senhaMinuscula.replace(/[^a-z]/g, '')
-  if (temSequencia(letras)) {
-    problemas.push('A senha não deve conter sequências alfabéticas óbvias (ex: abcd).')
+  if (temSequencia(senhaMinuscula)) {
+    problemas.push('A senha não deve conter sequências óbvias, como 1234 ou abcd.')
   }
 
   return problemas
@@ -82,7 +84,6 @@ export function calcularForcaSenha(senha: string, nome: string, email: string): 
   const temEspecial = /[!@#$%^&*(),.?":{}|<>_\-+=[\]/~`]/.test(senha)
 
   if (problemas.length > 0) {
-    // Ainda tem problema, mas já passou do básico (minúscula + número)?
     const temMinuscula = /[a-z]/.test(senha)
     const temNumero = /[0-9]/.test(senha)
     const tamanhoValido = senha.length >= 8
