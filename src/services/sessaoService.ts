@@ -131,3 +131,21 @@ export interface SessaoEmAndamento {
 export function sessaoAoReabrir(sessao: Sessao, ultimoSinal: number): Sessao {
   return pausarSessao(sessao, ultimoSinal)
 }
+
+export const LIMITE_APRENDIZADO = 1000
+
+export type ResultadoAprendizado =
+  | { valido: true; texto: string | null }
+  | { valido: false; mensagem: string }
+
+export function minutosRegistrados(sessao: Sessao): number {
+  return Math.round(sessao.duracaoMs / 60000)
+}
+
+export function validarAprendizado(texto: string): ResultadoAprendizado {
+  const limpo = texto.trim()
+  if (limpo.length > LIMITE_APRENDIZADO) {
+    return { valido: false, mensagem: `O registro pode ter até ${LIMITE_APRENDIZADO} caracteres.` }
+  }
+  return { valido: true, texto: limpo === '' ? null : limpo }
+}

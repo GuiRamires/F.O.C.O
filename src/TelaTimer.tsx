@@ -9,6 +9,8 @@ import {
 import { pararAlerta, tocarAlerta } from './utils/alertaSonoro'
 import PainelRetomada from './PainelRetomada'
 import './styles/timer.css'
+import ModalAprendizado from './ModalAprendizado'
+import type { ResultadoSalvar } from './controllers/sessaoController'
 
 interface TelaTimerProps {
   sessao: Sessao
@@ -18,7 +20,7 @@ interface TelaTimerProps {
   onPausar: (instante: number) => void
   onRetomar: (instante: number) => void
   onDescartar: (textoDigitado: string) => void
-  onConcluir: () => void
+  onRegistrar: (textoAprendizado: string) => Promise<ResultadoSalvar>
 }
 
 const INTERVALO_ATUALIZACAO_MS = 250
@@ -31,9 +33,11 @@ function TelaTimer({
   onPausar,
   onRetomar,
   onDescartar,
-  onConcluir,
+  onRegistrar,
 }: TelaTimerProps) {
   const [agora, setAgora] = useState(() => Date.now())
+
+  const [registrando, setRegistrando] = useState(false)
 
   useEffect(() => {
     const intervalo = setInterval(() => setAgora(Date.now()), INTERVALO_ATUALIZACAO_MS)
@@ -118,7 +122,7 @@ function TelaTimer({
         {estado === 'concluida' ? (
           <>
             <span className="timer__foco">Timer finalizado</span>
-            <button type="button" className="timer__botao" onClick={onConcluir}>
+            <button type="button" className="timer__botao" onClick={() => setRegistrando(true)}>
               Continuar
             </button>
           </>
@@ -141,7 +145,7 @@ function TelaTimer({
       </footer>
 
       {mostrarRetomada && <PainelRetomada onContinuar={alternarPausa} onDescartar={onDescartar} />}
-      
+      {estado === 'concluida' && registrando && <ModalAprendizado onSalvar={onRegistrar} />}
     </main>
   )
 }

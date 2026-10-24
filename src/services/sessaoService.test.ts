@@ -16,6 +16,8 @@ import {
   mascararHorasMinutos,
   validarTextoDuracao,
   sessaoAoReabrir,
+  validarAprendizado,
+  minutosRegistrados,
 
 } from './sessaoService'
 
@@ -179,5 +181,30 @@ describe('reabertura do app', () => {
     const reaberta = sessaoAoReabrir(sessao, INICIO + minutos(26))
 
     expect(estadoDaSessao(reaberta, INICIO + minutos(90))).toBe('concluida')
+  })
+})
+
+
+describe('registro da sessão', () => {
+  it('registra a duração escolhida, em minutos', () => {
+    expect(minutosRegistrados(iniciarSessao('foco-1', 25, INICIO))).toBe(25)
+    expect(minutosRegistrados(iniciarSessao('foco-1', 90, INICIO))).toBe(90)
+  })
+
+  it('aprendizado em branco é aceito e fica vazio (RN22.1)', () => {
+    expect(validarAprendizado('')).toEqual({ valido: true, texto: null })
+    expect(validarAprendizado('   ')).toEqual({ valido: true, texto: null })
+  })
+
+  it('tira os espaços das pontas do aprendizado', () => {
+    expect(validarAprendizado('  Aprendi o present perfect.  ')).toEqual({
+      valido: true,
+      texto: 'Aprendi o present perfect.',
+    })
+  })
+
+  it('aceita até 1000 caracteres e recusa 1001 (RN22.2)', () => {
+    expect(validarAprendizado('a'.repeat(1000)).valido).toBe(true)
+    expect(validarAprendizado('a'.repeat(1001)).valido).toBe(false)
   })
 })

@@ -5,7 +5,7 @@ import Cadastro from './Cadastro'
 import ListaFocos from './ListaFocos'
 import NovoFoco from './NovoFoco'
 import { handleListarFocos } from './controllers/focoController'
-import { handleConfirmarDescarte, handleRestaurarSessao } from './controllers/sessaoController'
+import { handleConfirmarDescarte, handleRestaurarSessao, handleSalvarSessao } from './controllers/sessaoController'
 import type { FocoComProgresso } from './services/focoService'
 import Sidebar from './Sidebar'
 import { getPapelUsuario } from './repositories/focoRepository'
@@ -120,7 +120,14 @@ function App() {
         onDescartar={(textoDigitado) => {
           if (handleConfirmarDescarte(textoDigitado)) encerrarSessao()
         }}
-        onConcluir={encerrarSessao}
+        onRegistrar={async (textoAprendizado) => {
+          const resultado = await handleSalvarSessao(sessaoDoUsuario.sessao, textoAprendizado)
+          if (resultado.sucesso) {
+            encerrarSessao()
+            if (userId) carregarFocos(userId)
+          }
+          return resultado
+        }}
       />
     )
   }
