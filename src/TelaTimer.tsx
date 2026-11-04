@@ -13,7 +13,7 @@ import {
   opcaoJanelaFlutuante,
   suportaJanelaFlutuante,
 } from './services/janelaFlutuanteService'
-import { pararAlerta, tocarAlerta } from './utils/alertaSonoro'
+import { agendarAlerta, pararAlerta } from './utils/alertaSonoro'
 import { useJanelaFlutuante } from './hooks/useJanelaFlutuante'
 import PainelRetomada from './PainelRetomada'
 import ModalAprendizado from './ModalAprendizado'
@@ -57,11 +57,8 @@ function TelaTimer({
     if (sessao.pausadaEm !== null) return
     const restante = tempoRestanteMs(sessao, Date.now())
     if (restante === 0) return
-    const alarme = setTimeout(tocarAlerta, restante)
-    return () => {
-      clearTimeout(alarme)
-      pararAlerta()
-    }
+    agendarAlerta(restante)
+    return () => pararAlerta()
   }, [sessao])
 
   const estado = estadoDaSessao(sessao, agora)

@@ -8,6 +8,7 @@ const INTERVALO_BIPE_S = 0.08
 const BIPES_POR_CICLO = 4
 const PAUSA_ENTRE_CICLOS_S = 0.5
 const CICLOS = 6
+const MARGEM_INICIO_S = 0.05
 
 function obterContexto(): AudioContext {
   if (!contexto) {
@@ -23,10 +24,10 @@ export function prepararAlerta() {
   obterContexto()
 }
 
-export function tocarAlerta() {
+export function agendarAlerta(daquiMs: number) {
   pararAlerta()
   const ctx = obterContexto()
-  let instante = ctx.currentTime + 0.05
+  let instante = ctx.currentTime + Math.max(daquiMs / 1000, MARGEM_INICIO_S)
 
   for (let ciclo = 0; ciclo < CICLOS; ciclo++) {
     for (let bipe = 0; bipe < BIPES_POR_CICLO; bipe++) {
@@ -35,6 +36,10 @@ export function tocarAlerta() {
     }
     instante += PAUSA_ENTRE_CICLOS_S
   }
+}
+
+export function tocarAlerta() {
+  agendarAlerta(0)
 }
 
 export function pararAlerta() {
