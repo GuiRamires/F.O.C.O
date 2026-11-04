@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import type { FocoComProgresso } from './services/focoService'
-import { handleAtribuirEstrela, handleRemoverEstrela } from './controllers/estrelaController'
+import { estaNoTop3, type AvaliacaoEstrela } from './services/estrelaService'
+import {
+  handleAtribuirEstrela,
+  handleRemoverEstrela,
+  handleVerificarEstrela,
+} from './controllers/estrelaController'
+import { descreverMinutos } from './utils/formatarHoras'
 import MenuAcoesFoco from './MenuAcoesFoco'
+import ModalAtribuirEstrela from './ModalAtribuirEstrela'
+import ModalRemoverEstrela from './ModalRemoverEstrela'
 
 interface ListaFocosProps {
   focos: FocoComProgresso[]
@@ -10,37 +18,37 @@ interface ListaFocosProps {
   onConcentrar: (foco: FocoComProgresso) => void
 }
 
+type ModalEstrela =
+  | { tipo: 'atribuir'; foco: FocoComProgresso; avaliacao: AvaliacaoEstrela }
+  | { tipo: 'remover'; foco: FocoComProgresso }
+
 function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFocosProps) {
-  const [processando, setProcessando] = useState<string | null>(null)
+  const [verificandoId, setVerificandoId] = useState<string | null>(null)
   const [menuAbertoId, setMenuAbertoId] = useState<string | null>(null)
+  const [modalEstrela, setModalEstrela] = useState<ModalEstrela | null>(null)
 
   const focosAtivos = focos.filter((f) => f.status === 'ativo')
   const focosLaboratorio = focos.filter((f) => f.status === 'laboratorio_sonhos')
 
   async function handleCliqueEstrela(foco: FocoComProgresso) {
-    setProcessando(foco.id)
-
     if (foco.tem_estrela) {
-      const confirmado = window.confirm(
-        'Deseja tirar a prioridade deste FOCO? Ele será movido para o seu Laboratório de Sonhos para que você reorganize suas energias.'
-      )
-      if (confirmado) {
-        const resultado = await handleRemoverEstrela(foco.id)
-        alert(resultado.mensagem)
-        if (resultado.sucesso) onFocoAtualizado()
-      }
-    } else {
-      const confirmado = window.confirm(
-        `Deseja atribuir a Estrela Dourada ao Foco "${foco.titulo}"? Ele se tornará sua prioridade máxima.`
-      )
-      if (confirmado) {
-        const resultado = await handleAtribuirEstrela(foco.id, userId)
-        alert(resultado.mensagem)
-        if (resultado.sucesso) onFocoAtualizado()
-      }
+      setModalEstrela({ tipo: 'remover', foco })
+      return
     }
 
-    setProcessando(null)
+    setVerificandoId(foco.id)
+    const avaliacao = await handleVerificarEstrela(foco, userId)
+    setVerificandoId(null)
+    setModalEstrela({ tipo: 'atribuir', foco, avaliacao })
+  }
+
+  function fecharModalEstrela() {
+    setModalEstrela(null)
+  }
+
+  function concluirAcaoEstrela() {
+    setModalEstrela(null)
+    onFocoAtualizado()
   }
 
   if (focosAtivos.length === 0 && focosLaboratorio.length === 0) {
@@ -58,16 +66,16 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
   return (
     <div>
       {menuAbertoId && <div className="fundo-escurecido" aria-hidden="true" />}
-      
+
       {focosAtivos.length > 0 && (
         <>
           <h5 style={{ marginBottom: '1rem' }}>Seu FOCO Atual</h5>
-          {focosAtivos.map((foco, index) => (
+          {focosAtivos.map((foco) => (
             <CardFoco
               key={foco.id}
               foco={foco}
-              podeReceberEstrela={index < 3}
-              processando={processando === foco.id}
+              podeReceberEstrela={estaNoTop3(foco.posicao)}
+              processando={verificandoId === foco.id}
               onCliqueEstrela={() => handleCliqueEstrela(foco)}
               menuAberto={menuAbertoId === foco.id}
               onAbrirMenu={() => setMenuAbertoId(foco.id)}
@@ -90,6 +98,27 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
             <CardFoco key={foco.id} foco={foco} desativado podeReceberEstrela={false} />
           ))}
         </>
+      )}
+
+      {modalEstrela?.tipo === 'atribuir' && (
+        <ModalAtribuirEstrela
+          tituloFoco={modalEstrela.foco.titulo}
+          avaliacao={modalEstrela.avaliacao}
+          onConfirmar={() => handleAtribuirEstrela(modalEstrela.foco, userId)}
+          onConcluido={concluirAcaoEstrela}
+          onFechar={fecharModalEstrela}
+        />
+      )}
+
+      {modalEstrela?.tipo === 'remover' && (
+        <ModalRemoverEstrela
+          tituloFoco={modalEstrela.foco.titulo}
+          onRemover={(fraseDigitada) =>
+            handleRemoverEstrela(modalEstrela.foco, userId, fraseDigitada, focosAtivos.length)
+          }
+          onConcluido={concluirAcaoEstrela}
+          onFechar={fecharModalEstrela}
+        />
       )}
     </div>
   )
@@ -134,16 +163,18 @@ function CardFoco({
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h5 style={{ margin: 0 }}>{foco.titulo}</h5>
-        <span>{foco.horasAcumuladas.toFixed(1)} horas</span>
+        <span>{descreverMinutos(Math.round(foco.horasAcumuladas * 60))}</span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
         {podeReceberEstrela ? (
           <button
+            type="button"
             onClick={(evento) => {
               evento.stopPropagation()
               onCliqueEstrela?.()
             }}
             disabled={processando}
+            aria-label={foco.tem_estrela ? 'Retirar a Estrela Dourada' : 'Dar a Estrela Dourada'}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: foco.tem_estrela ? '#000' : '#666' }}
           >
             {foco.tem_estrela ? '⭐' : '☆'}
@@ -151,7 +182,7 @@ function CardFoco({
         ) : (
           <span />
         )}
-        <span style={{ marginLeft: 'auto' }}>{foco.porcentagem.toFixed(0)}%</span>
+        <span style={{ marginLeft: 'auto' }}>{Math.floor(foco.porcentagem)}%</span>
       </div>
 
       {menuAberto && onConcentrar && onFecharMenu && (

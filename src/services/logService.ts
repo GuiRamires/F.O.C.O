@@ -5,6 +5,7 @@ export type AcaoLog =
   | 'cadastro'
   | 'criar_foco'
   | 'atribuir_estrela'
+  | 'remover_estrela'
 
 export async function registrarLog(
   userId: string,

@@ -1,49 +1,48 @@
-import { tentarAtribuirEstrela } from '../services/estrelaService'
-import type { ResultadoTentativaEstrela } from '../services/estrelaService'
+import type { FocoComProgresso } from '../services/focoService'
+import {
+  atribuirEstrela,
+  removerEstrela,
+  verificarAtribuicaoEstrela,
+  type AvaliacaoEstrela,
+  type ResultadoAcaoEstrela,
+} from '../services/estrelaService'
 
-export async function handleTentarAtribuirEstrela(focoId: string): Promise<ResultadoTentativaEstrela> {
+const MENSAGEM_SEM_CONEXAO = 'Confira sua conexão e tente de novo.'
+
+export async function handleVerificarEstrela(
+  foco: FocoComProgresso,
+  userId: string
+): Promise<AvaliacaoEstrela> {
   try {
-    return await tentarAtribuirEstrela(focoId)
-  } catch (error) {
-    return {
-      permitido: false,
-      mensagem: error instanceof Error ? error.message : 'Erro inesperado ao tentar atribuir a estrela.',
-      horasAcumuladas: 0,
-      horasFaltantes: 0,
-    }
+    return await verificarAtribuicaoEstrela(foco, userId)
+  } catch (erro) {
+    console.error(erro)
+    return { permitido: false, mensagem: `Não foi possível verificar a Estrela agora. ${MENSAGEM_SEM_CONEXAO}` }
   }
 }
 
-import { atribuirEstrela, removerEstrela, existeFocoComEstrela } from '../services/estrelaService'
-import type { ResultadoAcaoEstrela } from '../services/estrelaService'
-
-export async function handleAtribuirEstrela(focoId: string, userId: string): Promise<ResultadoAcaoEstrela> {
+export async function handleAtribuirEstrela(
+  foco: FocoComProgresso,
+  userId: string
+): Promise<ResultadoAcaoEstrela> {
   try {
-    const jaTemEstrela = await existeFocoComEstrela(userId)
-
-    if (jaTemEstrela) {
-      return {
-        sucesso: false,
-        mensagem: 'Já existe um Foco com a Estrela Dourada. Remova a prioridade dele antes de atribuir a outro.',
-      }
-    }
-
-    return await atribuirEstrela(focoId, userId)
-  } catch (error) {
-    return {
-      sucesso: false,
-      mensagem: error instanceof Error ? error.message : 'Erro inesperado ao atribuir a estrela.',
-    }
+    return await atribuirEstrela(foco, userId)
+  } catch (erro) {
+    console.error(erro)
+    return { sucesso: false, mensagem: `Não foi possível dar a Estrela agora. ${MENSAGEM_SEM_CONEXAO}` }
   }
 }
 
-export async function handleRemoverEstrela(focoId: string): Promise<ResultadoAcaoEstrela> {
+export async function handleRemoverEstrela(
+  foco: FocoComProgresso,
+  userId: string,
+  fraseDigitada: string,
+  totalAtivos: number
+): Promise<ResultadoAcaoEstrela> {
   try {
-    return await removerEstrela(focoId)
-  } catch (error) {
-    return {
-      sucesso: false,
-      mensagem: error instanceof Error ? error.message : 'Erro inesperado ao remover a estrela.',
-    }
+    return await removerEstrela(foco.id, userId, fraseDigitada, totalAtivos)
+  } catch (erro) {
+    console.error(erro)
+    return { sucesso: false, mensagem: `Não foi possível retirar a Estrela agora. ${MENSAGEM_SEM_CONEXAO}` }
   }
 }

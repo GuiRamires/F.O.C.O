@@ -1,92 +1,137 @@
-import { getTotalMinutosByFocoId } from '../repositories/focoRepository'
+import {
+  atribuirEstrelaAoFoco,
+  existeFocoComEstrela,
+  existeSessaoDesde,
+  getTotalMinutosByFocoId,
+  removerEstrelaDoFoco,
+} from '../repositories/focoRepository'
+import { confirmacaoConfere, mascararFrase } from './confirmacaoReflexiva'
 import { registrarLog } from './logService'
+import { descreverMinutos } from '../utils/formatarHoras'
 
-const HORAS_MINIMAS = 10
-const MINUTOS_MINIMOS = HORAS_MINIMAS * 60 // 600 minutos
+export const HORAS_MINIMAS_ESTRELA = 10
+export const MINUTOS_MINIMOS_ESTRELA = HORAS_MINIMAS_ESTRELA * 60
+export const TAMANHO_TOP = 3
+export const POSICAO_APOS_REMOVER_ESTRELA = TAMANHO_TOP + 1
+export const FRASE_REMOVER_ESTRELA = 'EU ESCOLHO MUDAR MINHA PRIORIDADE'
 
-export interface ResultadoTentativaEstrela {
-  permitido: boolean
-  mensagem: string
-  horasAcumuladas: number
-  horasFaltantes: number
+export interface FocoParaEstrela {
+  id: string
+  posicao: number | null
+  resgatado_em: string | null
 }
 
-export async function tentarAtribuirEstrela(focoId: string): Promise<ResultadoTentativaEstrela> {
-  const totalMinutos = await getTotalMinutosByFocoId(focoId)
-  const horasAcumuladas = totalMinutos / 60
-
-  if (totalMinutos >= MINUTOS_MINIMOS) {
-    return {
-      permitido: true,
-      mensagem: 'Esse F.O.C.O Agora é Prioridade.',
-      horasAcumuladas,
-      horasFaltantes: 0,
-    }
-  }
-
-  const minutosFaltantes = MINUTOS_MINIMOS - totalMinutos
-  const horasFaltantes = minutosFaltantes / 60
-
-  return {
-    permitido: false,
-    mensagem: `Ainda não é possível atribuir a Estrela Dourada. Faltam ${horasFaltantes.toFixed(1)}h de foco registrado para este card.`,
-    horasAcumuladas,
-    horasFaltantes,
-  }
+export interface CondicoesEstrela {
+  posicao: number | null
+  minutosAcumulados: number
+  existeOutraEstrela: boolean
+  praticadoAposResgate: boolean
 }
 
-import { supabase } from '../supabaseClient'
+export type AvaliacaoEstrela = { permitido: true } | { permitido: false; mensagem: string }
 
 export interface ResultadoAcaoEstrela {
   sucesso: boolean
   mensagem: string
 }
 
-export async function atribuirEstrela(focoId: string, userId: string): Promise<ResultadoAcaoEstrela> {
-  const resultado = await tentarAtribuirEstrela(focoId)
-
-  if (!resultado.permitido) {
-    return { sucesso: false, mensagem: resultado.mensagem }
-  }
-
-  const { error } = await supabase
-    .from('focos')
-    .update({ tem_estrela: true })
-    .eq('id', focoId)
-
-  if (error) {
-    return { sucesso: false, mensagem: `Erro ao atribuir a estrela: ${error.message}` }
-  }
-
-  await registrarLog(userId, 'atribuir_estrela', { foco_id: focoId })
-
-  return { sucesso: true, mensagem: 'Esse F.O.C.O agora é sua Prioridade! 🌟' }
+export function estaNoTop3(posicao: number | null): boolean {
+  return posicao !== null && posicao >= 1 && posicao <= TAMANHO_TOP
 }
 
-export async function removerEstrela(focoId: string): Promise<ResultadoAcaoEstrela> {
-  const { error } = await supabase
-    .from('focos')
-    .update({ tem_estrela: false, status: 'laboratorio_sonhos' })
-    .eq('id', focoId)
-
-  if (error) {
-    return { sucesso: false, mensagem: `Erro ao remover a prioridade: ${error.message}` }
+export function avaliarAtribuicaoEstrela(condicoes: CondicoesEstrela): AvaliacaoEstrela {
+  if (condicoes.existeOutraEstrela) {
+    return {
+      permitido: false,
+      mensagem: 'Você já tem um Foco com a Estrela Dourada. Retire a Estrela dele antes de escolher outro.',
+    }
   }
 
-  return { sucesso: true, mensagem: 'Foco movido para o Laboratório de Sonhos.' }
+  if (!estaNoTop3(condicoes.posicao)) {
+    return {
+      permitido: false,
+      mensagem: 'A Estrela Dourada só pode ir para um Foco entre os três primeiros da pilha.',
+    }
+  }
+
+  if (condicoes.minutosAcumulados < MINUTOS_MINIMOS_ESTRELA) {
+    const faltam = Math.ceil(MINUTOS_MINIMOS_ESTRELA - condicoes.minutosAcumulados)
+    return {
+      permitido: false,
+      mensagem: `A Estrela Dourada exige ${HORAS_MINIMAS_ESTRELA} horas de foco. Faltam ${descreverMinutos(faltam)}.`,
+    }
+  }
+
+  if (!condicoes.praticadoAposResgate) {
+    return {
+      permitido: false,
+      mensagem: 'Este Foco voltou do Laboratório de Sonhos. Conclua uma sessão com ele antes de dar a Estrela.',
+    }
+  }
+
+  return { permitido: true }
 }
 
-export async function existeFocoComEstrela(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('focos')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('tem_estrela', true)
-    .limit(1)
+export function posicaoAposRemoverEstrela(totalAtivos: number): number {
+  return Math.max(1, Math.min(POSICAO_APOS_REMOVER_ESTRELA, totalAtivos))
+}
 
-  if (error) {
-    throw new Error(`Erro ao verificar estrela existente: ${error.message}`)
+export function mascararFraseEstrela(texto: string): string {
+  return mascararFrase(texto, FRASE_REMOVER_ESTRELA.length)
+}
+
+export function fraseRemoverEstrelaConfere(texto: string): boolean {
+  return confirmacaoConfere(texto, FRASE_REMOVER_ESTRELA)
+}
+
+export async function verificarAtribuicaoEstrela(
+  foco: FocoParaEstrela,
+  userId: string
+): Promise<AvaliacaoEstrela> {
+  const [existeOutraEstrela, minutosAcumulados, praticadoAposResgate] = await Promise.all([
+    existeFocoComEstrela(userId),
+    getTotalMinutosByFocoId(foco.id),
+    foco.resgatado_em ? existeSessaoDesde(foco.id, foco.resgatado_em) : Promise.resolve(true),
+  ])
+
+  return avaliarAtribuicaoEstrela({
+    posicao: foco.posicao,
+    minutosAcumulados,
+    existeOutraEstrela,
+    praticadoAposResgate,
+  })
+}
+
+export async function atribuirEstrela(
+  foco: FocoParaEstrela,
+  userId: string
+): Promise<ResultadoAcaoEstrela> {
+  const avaliacao = await verificarAtribuicaoEstrela(foco, userId)
+
+  if (!avaliacao.permitido) {
+    return { sucesso: false, mensagem: avaliacao.mensagem }
   }
 
-  return data.length > 0
+  await atribuirEstrelaAoFoco(foco.id)
+  await registrarLog(userId, 'atribuir_estrela', { foco_id: foco.id })
+
+  return { sucesso: true, mensagem: 'Este Foco agora é a sua prioridade.' }
+}
+
+export async function removerEstrela(
+  focoId: string,
+  userId: string,
+  fraseDigitada: string,
+  totalAtivos: number
+): Promise<ResultadoAcaoEstrela> {
+  if (!fraseRemoverEstrelaConfere(fraseDigitada)) {
+    return { sucesso: false, mensagem: 'A frase digitada não confere.' }
+  }
+
+  const novaPosicao = posicaoAposRemoverEstrela(totalAtivos)
+
+  await removerEstrelaDoFoco(focoId, novaPosicao)
+  await registrarLog(userId, 'remover_estrela', { foco_id: focoId, nova_posicao: novaPosicao })
+
+  return { sucesso: true, mensagem: 'A Estrela foi retirada. O Foco continua na sua pilha.' }
 }

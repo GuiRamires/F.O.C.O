@@ -1,5 +1,39 @@
 import { supabase } from '../supabaseClient'
 
+export interface Foco {
+  id: string
+  titulo: string
+  meta_horas: number
+  observacoes: string | null
+  tem_estrela: boolean
+  status: string
+  posicao: number | null
+  cor_hex: string | null
+  resgatado_em: string | null
+  created_at: string
+}
+
+export interface NovoFoco {
+  titulo: string
+  meta_horas: number
+  observacoes: string
+}
+
+export async function getFocosByUserId(userId: string): Promise<Foco[]> {
+  const { data, error } = await supabase
+    .from('focos')
+    .select('id, titulo, meta_horas, observacoes, tem_estrela, status, posicao, cor_hex, resgatado_em, created_at')
+    .eq('user_id', userId)
+    .order('posicao', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    throw new Error(`Erro ao buscar Focos: ${error.message}`)
+  }
+
+  return data
+}
+
 export async function getTotalMinutosByFocoId(focoId: string): Promise<number> {
   const { data, error } = await supabase
     .from('focus_sessions')
@@ -10,38 +44,56 @@ export async function getTotalMinutosByFocoId(focoId: string): Promise<number> {
     throw new Error(`Erro ao buscar sessões do foco: ${error.message}`)
   }
 
-  const totalMinutos = data.reduce((soma, sessao) => soma + sessao.duracao_minutos, 0)
-  return totalMinutos
+  return data.reduce((soma, sessao) => soma + sessao.duracao_minutos, 0)
 }
 
-export interface Foco {
-  id: string
-  titulo: string
-  meta_horas: number
-  observacoes: string | null
-  tem_estrela: boolean
-  status: string
-  created_at: string
-}
-
-export async function getFocosByUserId(userId: string): Promise<Foco[]> {
+export async function existeSessaoDesde(focoId: string, desde: string): Promise<boolean> {
   const { data, error } = await supabase
-    .from('focos')
-    .select('id, titulo, meta_horas, observacoes, tem_estrela, status, created_at')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
+    .from('focus_sessions')
+    .select('id')
+    .eq('foco_id', focoId)
+    .gte('created_at', desde)
+    .limit(1)
 
   if (error) {
-    throw new Error(`Erro ao buscar Focos: ${error.message}`)
+    throw new Error(`Erro ao buscar sessões do foco: ${error.message}`)
   }
 
-  return data
+  return data.length > 0
 }
 
-export interface NovoFoco {
-  titulo: string
-  meta_horas: number
-  observacoes: string
+export async function existeFocoComEstrela(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('focos')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('tem_estrela', true)
+    .limit(1)
+
+  if (error) {
+    throw new Error(`Erro ao verificar a Estrela: ${error.message}`)
+  }
+
+  return data.length > 0
+}
+
+export async function atribuirEstrelaAoFoco(focoId: string): Promise<void> {
+  const { error } = await supabase.rpc('atribuir_estrela', { p_foco_id: focoId })
+
+  if (error) {
+    throw new Error(`Erro ao atribuir a Estrela: ${error.message}`)
+  }
+}
+
+export async function removerEstrelaDoFoco(focoId: string, novaPosicao: number): Promise<void> {
+  const { error } = await supabase.rpc('remover_estrela', {
+    p_foco_id: focoId,
+    p_nova_posicao: novaPosicao,
+  })
+
+  if (error) {
+    throw new Error(`Erro ao remover a Estrela: ${error.message}`)
+  }
 }
 
 export async function criarFoco(userId: string, foco: NovoFoco): Promise<void> {
@@ -58,13 +110,6 @@ export async function criarFoco(userId: string, foco: NovoFoco): Promise<void> {
     throw new Error(`Erro ao criar Foco: ${error.message}`)
   }
 }
-
-
-
-
-
-
-
 
 export async function getPapelUsuario(userId: string): Promise<string | null> {
   const { data, error } = await supabase

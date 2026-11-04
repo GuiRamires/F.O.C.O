@@ -5,3 +5,12 @@ export function normalizarConfirmacao(texto: string): string {
 export function confirmacaoConfere(digitado: string, esperado: string): boolean {
   return normalizarConfirmacao(digitado) === normalizarConfirmacao(esperado)
 }
+
+export function mascararFrase(texto: string, limite: number): string {
+  return texto
+    .toLocaleUpperCase('pt-BR')
+    .replace(/[^\p{L} ]/gu, '')
+    .replace(/^ +/, '')
+    .replace(/ {2,}/g, ' ')
+    .slice(0, limite)
+}
