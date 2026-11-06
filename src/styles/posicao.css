@@ -1,0 +1,66 @@
+.posicao-modal .retomada__titulo,
+.posicao-modal strong {
+  color: var(--cor-primaria);
+}
+
+.posicao-modal__opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.posicao-modal__opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.posicao-modal__opcao--top {
+  border-color: rgba(0, 140, 255, 0.7);
+}
+
+.posicao-modal__opcao:not(:disabled):hover,
+.posicao-modal__opcao:not(:disabled):focus-visible {
+  border-color: var(--cor-primaria);
+  background: var(--cor-primaria);
+  outline: none;
+}
+
+.posicao-modal__opcao:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.posicao-modal__opcao--atual:disabled {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.posicao-modal__opcao--estrela:disabled {
+  border-color: rgba(255, 193, 7, 0.6);
+  color: #ffc107;
+  opacity: 1;
+}
+
+.posicao-modal__marca {
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+.posicao-modal__nota {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}

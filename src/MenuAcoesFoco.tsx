@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
 import './styles/menuAcoes.css'
 
-export type IconeAcao = 'concentrar' | 'arquivar' | 'resgatar' | 'excluir'
+export type IconeAcao = 'concentrar' | 'mover' | 'arquivar' | 'resgatar' | 'excluir'
 
 export interface AcaoMenu {
   rotulo: string
   icone: IconeAcao
   aoEscolher: () => void
-  variante?: 'laboratorio' | 'perigo'
+  variante?: 'secundario' | 'laboratorio' | 'perigo'
 }
 
 interface MenuAcoesFocoProps {
@@ -25,6 +25,7 @@ function IconeDaAcao({ icone }: { icone: IconeAcao }) {
           <path d="M12 9v4l2 2M9 2h6" />
         </>
       )}
+      {icone === 'mover' && <path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4" />}
       {icone === 'arquivar' && (
         <>
           <rect x="2" y="4" width="20" height="5" rx="1" />

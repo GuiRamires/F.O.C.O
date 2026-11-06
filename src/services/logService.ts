@@ -6,6 +6,7 @@ export type AcaoLog =
   | 'criar_foco'
   | 'atribuir_estrela'
   | 'remover_estrela'
+  | 'reordenar_foco'
   | 'arquivar_foco'
   | 'resgatar_foco'
   | 'excluir_foco'

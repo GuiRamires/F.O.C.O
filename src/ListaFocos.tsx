@@ -3,11 +3,18 @@ import type { FocoComProgresso } from './services/focoService'
 import { estaNoTop3, type AvaliacaoEstrela } from './services/estrelaService'
 import { avaliarArquivamento, STATUS_ATIVO, STATUS_LABORATORIO, type ResultadoResgate } from './services/laboratorioService'
 import {
+  podeMudarDePosicao,
+  posicoesDaPilha,
+  primeiraPosicaoLivre,
+  type SituacaoDaPilha,
+} from './services/posicaoService'
+import {
   handleAtribuirEstrela,
   handleRemoverEstrela,
   handleVerificarEstrela,
 } from './controllers/estrelaController'
 import { handleArquivarFoco, handleExcluirFoco, handleResgatarFoco } from './controllers/laboratorioController'
+import { handleMudarPosicao } from './controllers/posicaoController'
 import { descreverMinutos } from './utils/formatarHoras'
 import MenuAcoesFoco, { type AcaoMenu } from './MenuAcoesFoco'
 import ModalAtribuirEstrela from './ModalAtribuirEstrela'
@@ -15,6 +22,7 @@ import ModalRemoverEstrela from './ModalRemoverEstrela'
 import ModalArquivarFoco from './ModalArquivarFoco'
 import ModalFocoResgatado from './ModalFocoResgatado'
 import ModalExcluirFoco from './ModalExcluirFoco'
+import ModalMudarPosicao from './ModalMudarPosicao'
 import './styles/laboratorio.css'
 
 interface ListaFocosProps {
@@ -27,6 +35,7 @@ interface ListaFocosProps {
 type ModalAberto =
   | { tipo: 'atribuir'; foco: FocoComProgresso; avaliacao: AvaliacaoEstrela }
   | { tipo: 'remover'; foco: FocoComProgresso }
+  | { tipo: 'posicao'; foco: FocoComProgresso }
   | { tipo: 'arquivar'; foco: FocoComProgresso }
   | { tipo: 'resgatado'; foco: FocoComProgresso; resultado: ResultadoResgate }
   | { tipo: 'excluir'; foco: FocoComProgresso }
@@ -47,6 +56,10 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
 
   const focosAtivos = focos.filter((f) => f.status === STATUS_ATIVO)
   const focosLaboratorio = focos.filter((f) => f.status === STATUS_LABORATORIO)
+  const pilha: SituacaoDaPilha = {
+    totalAtivos: focosAtivos.length,
+    existeEstrela: focosAtivos.some((f) => f.tem_estrela),
+  }
 
   function abrirModal(novoModal: ModalAberto) {
     setMenuAbertoId(null)
@@ -99,6 +112,16 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
         },
       },
     ]
+
+    if (podeMudarDePosicao(foco, pilha)) {
+      acoes.push({
+        rotulo: 'Mudar posição',
+        icone: 'mover',
+        aoEscolher: () => abrirModal({ tipo: 'posicao', foco }),
+        variante: 'secundario',
+      })
+    }
+
     const arquivamento = avaliarArquivamento(foco)
 
     if (!arquivamento.permitido) {
@@ -197,6 +220,19 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
         <ModalRemoverEstrela
           tituloFoco={modal.foco.titulo}
           onRemover={(fraseDigitada) => handleRemoverEstrela(modal.foco, userId, fraseDigitada, focosAtivos.length)}
+          onConcluido={concluirAcao}
+          onFechar={fecharModal}
+        />
+      )}
+
+      {modal?.tipo === 'posicao' && (
+        <ModalMudarPosicao
+          tituloFoco={modal.foco.titulo}
+          posicaoAtual={modal.foco.posicao}
+          posicoes={posicoesDaPilha(pilha)}
+          primeiraLivre={primeiraPosicaoLivre(pilha)}
+          aguardandoPratica={modal.foco.aguardandoPratica}
+          onMover={(novaPosicao) => handleMudarPosicao(modal.foco, novaPosicao, pilha, userId)}
           onConcluido={concluirAcao}
           onFechar={fecharModal}
         />

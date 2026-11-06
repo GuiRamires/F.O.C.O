@@ -80,6 +80,11 @@
   filter: brightness(1.15);
 }
 
+.menu-acoes__item--secundario {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+}
+
 .menu-acoes__item--laboratorio {
   background: #7C4DFF;
 }

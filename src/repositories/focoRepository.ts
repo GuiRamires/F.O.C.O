@@ -97,6 +97,17 @@ export async function removerEstrelaDoFoco(focoId: string, novaPosicao: number):
   }
 }
 
+export async function reordenarFocoNaPilha(focoId: string, novaPosicao: number): Promise<void> {
+  const { error } = await supabase.rpc('reordenar_foco', {
+    p_foco_id: focoId,
+    p_nova_posicao: novaPosicao,
+  })
+
+  if (error) {
+    throw new Error(`Erro ao mudar a posição do Foco: ${error.message}`)
+  }
+}
+
 export async function arquivarFocoNoLaboratorio(focoId: string): Promise<void> {
   const { error } = await supabase.rpc('arquivar_foco', { p_foco_id: focoId })
 
