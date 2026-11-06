@@ -1,13 +1,13 @@
-import { carregarEstatisticas, type Estatisticas } from '../services/estatisticasService'
+import { carregarSessoesDoAluno, type SessaoComFoco } from '../services/estatisticasService'
 
-export type ResultadoEstatisticas =
-  | { sucesso: true; estatisticas: Estatisticas }
+export type ResultadoSessoes =
+  | { sucesso: true; sessoes: SessaoComFoco[] }
   | { sucesso: false; mensagem: string }
 
-export async function handleCarregarEstatisticas(userId: string): Promise<ResultadoEstatisticas> {
+export async function handleCarregarSessoes(userId: string): Promise<ResultadoSessoes> {
   try {
-    const estatisticas = await carregarEstatisticas(userId, new Date())
-    return { sucesso: true, estatisticas }
+    const sessoes = await carregarSessoesDoAluno(userId)
+    return { sucesso: true, sessoes }
   } catch (erro) {
     console.error(erro)
     return {

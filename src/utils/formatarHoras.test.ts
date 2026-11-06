@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { descreverMinutos } from './formatarHoras'
+import { descreverMinutos, marcasEmHoras } from './formatarHoras'
 
 describe('descrever o tempo estudado', () => {
   it('mostra horas e minutos sem arredondar para cima', () => {
@@ -15,5 +15,19 @@ describe('descrever o tempo estudado', () => {
 
   it('descarta frações de minuto em vez de arredondar', () => {
     expect(descreverMinutos(599.9)).toBe('9 h 59 min')
+  })
+})
+
+describe('marcas do eixo em horas inteiras', () => {
+  it('usa passos de 1 hora quando o máximo é pequeno', () => {
+    expect(marcasEmHoras(150)).toEqual([0, 60, 120, 180])
+  })
+
+  it('aumenta o passo para não passar de cinco intervalos', () => {
+    expect(marcasEmHoras(534)).toEqual([0, 120, 240, 360, 480, 600])
+  })
+
+  it('sem horas, mostra o eixo de 0 a 1 hora', () => {
+    expect(marcasEmHoras(0)).toEqual([0, 60])
   })
 })
