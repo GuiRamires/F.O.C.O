@@ -4,17 +4,17 @@ import TermosModal from './TermosModal'
 interface SidebarProps {
   aberta: boolean
   onFechar: () => void
+  onAbrirEstatisticas: () => void
   onLogout: () => void
 }
 
-function Sidebar({ aberta, onFechar, onLogout }: SidebarProps) {
+function Sidebar({ aberta, onFechar, onAbrirEstatisticas, onLogout }: SidebarProps) {
   const [modalTermosAberto, setModalTermosAberto] = useState(false)
 
   if (!aberta) return null
 
   return (
     <>
-      {/* Fundo escurecido, clicável para fechar */}
       <div
         onClick={onFechar}
         style={{
@@ -25,7 +25,6 @@ function Sidebar({ aberta, onFechar, onLogout }: SidebarProps) {
         }}
       />
 
-      {/* Painel lateral */}
       <div
         style={{
           position: 'fixed',
@@ -49,6 +48,9 @@ function Sidebar({ aberta, onFechar, onLogout }: SidebarProps) {
         </button>
         <button className="btn btn-outline-light text-start" disabled>
           Meus Focos
+        </button>
+        <button className="btn btn-outline-light text-start" onClick={onAbrirEstatisticas}>
+          Estatísticas
         </button>
         <button
           className="btn btn-outline-light text-start"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import Login from './Login'
 import Cadastro from './Cadastro'
@@ -15,6 +15,9 @@ import TelaTimer from './TelaTimer'
 import { iniciarSessao, pausarSessao, retomarSessao, type SessaoEmAndamento } from './services/sessaoService'
 import { prepararAlerta } from './utils/alertaSonoro'
 import { usePersistirSessao } from './hooks/usePersistirSessao'
+import type { SessaoConcluida } from './TelaEstatisticas'
+
+const TelaEstatisticas = lazy(() => import('./TelaEstatisticas'))
 
 function App() {
   const [logado, setLogado] = useState(false)
@@ -24,11 +27,12 @@ function App() {
 
   const [focos, setFocos] = useState<FocoComProgresso[]>([])
   const [carregandoFocos, setCarregandoFocos] = useState(false)
-  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'preparacao'>('lista')
+  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'preparacao' | 'estatisticas'>('lista')
   const [focoSelecionado, setFocoSelecionado] = useState<FocoComProgresso | null>(null)
   const [sidebarAberta, setSidebarAberta] = useState(false)
   const [emAndamento, setEmAndamento] = useState<SessaoEmAndamento | null>(() => handleRestaurarSessao())
   const [retomada, setRetomada] = useState(emAndamento !== null)
+  const [sessaoConcluida, setSessaoConcluida] = useState<SessaoConcluida | null>(null)
 
   const [papel, setPapel] = useState<string | null>(null)
 
@@ -78,6 +82,24 @@ function App() {
     setTelaAtual('lista')
   }
 
+  function observarSessao(concluida: SessaoConcluida) {
+    setEmAndamento(null)
+    setRetomada(false)
+    setSessaoConcluida(concluida)
+    setTelaAtual('estatisticas')
+  }
+
+  function abrirEstatisticas() {
+    setSidebarAberta(false)
+    setSessaoConcluida(null)
+    setTelaAtual('estatisticas')
+  }
+
+  function voltarParaLista() {
+    setSessaoConcluida(null)
+    setTelaAtual('lista')
+  }
+
   if (verificandoSessao) {
     return <p style={{ padding: '2rem' }}>Carregando...</p>
   }
@@ -121,9 +143,10 @@ function App() {
           if (handleConfirmarDescarte(textoDigitado)) encerrarSessao()
         }}
         onRegistrar={async (textoAprendizado) => {
-          const resultado = await handleSalvarSessao(sessaoDoUsuario.sessao, textoAprendizado)
+          const { sessao, tituloFoco } = sessaoDoUsuario
+          const resultado = await handleSalvarSessao(sessao, textoAprendizado)
           if (resultado.sucesso) {
-            encerrarSessao()
+            observarSessao({ focoId: sessao.focoId, tituloFoco, minutos: sessao.duracaoMs / 60000 })
             if (userId) carregarFocos(userId)
           }
           return resultado
@@ -155,6 +178,19 @@ function App() {
     )
   }
 
+  if (telaAtual === 'estatisticas' && userId) {
+    return (
+      <Suspense fallback={<p style={{ padding: '2rem' }}>Carregando suas estatísticas...</p>}>
+        <TelaEstatisticas
+          userId={userId}
+          focos={focos}
+          sessaoConcluida={sessaoConcluida}
+          onVoltar={voltarParaLista}
+        />
+      </Suspense>
+    )
+  }
+
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -175,6 +211,7 @@ function App() {
       <Sidebar
         aberta={sidebarAberta}
         onFechar={() => setSidebarAberta(false)}
+        onAbrirEstatisticas={abrirEstatisticas}
         onLogout={handleLogout}
       />
 
