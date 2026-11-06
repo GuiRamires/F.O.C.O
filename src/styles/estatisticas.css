@@ -401,8 +401,8 @@
   font-weight: normal;
 }
 
-.observar__tabela td:last-child,
-.observar__tabela th:last-child {
+.observar__tabela td:not(:first-child),
+.observar__tabela th:not(:first-child) {
   text-align: right;
 }
 
@@ -464,11 +464,23 @@
   align-items: center;
 }
 
+.constancia__corpo {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
 .constancia__grade {
   display: grid;
-  flex: 1;
   grid-template-columns: repeat(12, minmax(0, 26px));
   gap: 3px;
+}
+
+.constancia__periodo {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  color: var(--texto-suave);
+  font-size: 0.7rem;
 }
 
 .constancia__semana {

@@ -63,10 +63,24 @@ describe('estatísticas de estudo', () => {
     const resultado = calcularEstatisticas([sessao('a', 60, dia(11, 3)), sessao('a', 30, dia(10, 28))], QUARTA_04_11)
 
     expect(resultado.porSemana.slice(-2)).toEqual([
-      { inicio: '2026-10-26', rotulo: '26/10', minutos: 30 },
-      { inicio: '2026-11-02', rotulo: '02/11', minutos: 60 },
+      { inicio: '2026-10-26', rotulo: '26/10', minutos: 30, sessoes: 1 },
+      { inicio: '2026-11-02', rotulo: '02/11', minutos: 60, sessoes: 1 },
     ])
     expect(resultado.minutosNaSemanaAtual).toBe(60)
+  })
+
+  it('a semana soma várias sessões: quatro de 90 min dão 6 h na mesma semana', () => {
+    const resultado = calcularEstatisticas(
+      [
+        sessao('a', 90, dia(11, 2)),
+        sessao('a', 90, dia(11, 3)),
+        sessao('a', 90, dia(11, 3, 20)),
+        sessao('a', 90, dia(11, 4, 8)),
+      ],
+      QUARTA_04_11
+    )
+
+    expect(resultado.porSemana[resultado.porSemana.length - 1]).toMatchObject({ minutos: 360, sessoes: 4 })
   })
 
   it('a semana começa na segunda-feira: domingo fica na semana anterior', () => {

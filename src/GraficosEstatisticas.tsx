@@ -14,7 +14,7 @@ const COR_GRADE = 'rgba(255, 255, 255, 0.08)'
 const COR_EIXO = 'rgba(255, 255, 255, 0.18)'
 const COR_BARRA = 'var(--grafico-barra)'
 const TAMANHO_TEXTO_EIXO = 12
-const ROTULOS_DIAS = ['seg', '', 'qua', '', 'sex', '', 'dom']
+const ROTULOS_DIAS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom']
 
 const ESTILO_DICA = {
   background: '#021B33',
@@ -25,6 +25,10 @@ const ESTILO_DICA = {
 
 function animacoesPermitidas(): boolean {
   return !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+}
+
+function descreverSessoes(quantidade: number): string {
+  return `${quantidade} ${quantidade === 1 ? 'sessão' : 'sessões'}`
 }
 
 function descreverFaixa(nivel: number): string {
@@ -39,6 +43,7 @@ function descreverFaixa(nivel: number): string {
 interface Linha {
   rotulo: string
   minutos: number
+  sessoes: number
 }
 
 function TabelaDados({ titulo, cabecalho, linhas }: { titulo: string; cabecalho: string; linhas: Linha[] }) {
@@ -50,6 +55,7 @@ function TabelaDados({ titulo, cabecalho, linhas }: { titulo: string; cabecalho:
         <thead>
           <tr>
             <th scope="col">{cabecalho}</th>
+            <th scope="col">Sessões</th>
             <th scope="col">Tempo de foco</th>
           </tr>
         </thead>
@@ -57,6 +63,7 @@ function TabelaDados({ titulo, cabecalho, linhas }: { titulo: string; cabecalho:
           {linhas.map((linha) => (
             <tr key={linha.rotulo}>
               <td>{linha.rotulo}</td>
+              <td>{linha.sessoes}</td>
               <td>{descreverMinutos(linha.minutos)}</td>
             </tr>
           ))}
@@ -95,7 +102,10 @@ export function GraficoSemanas({ dados }: { dados: MinutosPorSemana[] }) {
             <Tooltip
               cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
               separator=": "
-              formatter={(valor) => [descreverMinutos(Number(valor)), 'Tempo de foco']}
+              formatter={(valor, _nome, item) => [
+                `${descreverMinutos(Number(valor))} em ${descreverSessoes(Number(item?.payload?.sessoes ?? 0))}`,
+                'Tempo de foco',
+              ]}
               labelFormatter={(rotulo) => `Semana de ${descreverSemana(String(rotulo))}`}
               contentStyle={ESTILO_DICA}
               labelStyle={{ color: COR_TEXTO_SUAVE }}
@@ -114,7 +124,11 @@ export function GraficoSemanas({ dados }: { dados: MinutosPorSemana[] }) {
       <TabelaDados
         titulo="Tempo de foco por semana"
         cabecalho="Semana de"
-        linhas={dados.map((semana) => ({ rotulo: descreverSemana(semana.rotulo), minutos: semana.minutos }))}
+        linhas={dados.map((semana) => ({
+          rotulo: descreverSemana(semana.rotulo),
+          minutos: semana.minutos,
+          sessoes: semana.sessoes,
+        }))}
       />
     </>
   )
@@ -168,6 +182,7 @@ export function RankingFocos({ dados, focos }: { dados: MinutosPorFoco[]; focos:
 export function MapaConstancia({ constancia }: { constancia: Constancia }) {
   const { semanas, diasEstudados } = constancia
   const resumo = `${diasEstudados} ${diasEstudados === 1 ? 'dia' : 'dias'} com estudo nas últimas ${SEMANAS_NA_CONSTANCIA} semanas`
+  const [, mesInicial, diaInicial] = (semanas[0]?.[0]?.chave ?? '').split('-')
 
   return (
     <div className="constancia">
@@ -177,18 +192,28 @@ export function MapaConstancia({ constancia }: { constancia: Constancia }) {
             <span key={indice}>{rotulo}</span>
           ))}
         </div>
-        <div className="constancia__grade" role="img" aria-label={resumo}>
-          {semanas.map((semana) => (
-            <div className="constancia__semana" key={semana[0].chave}>
-              {semana.map((dia) => (
-                <span
-                  key={dia.chave}
-                  className={`constancia__dia constancia__dia--${dia.futuro ? 'futuro' : dia.nivel}`}
-                  title={dia.futuro ? undefined : `${dia.rotulo}: ${dia.minutos > 0 ? descreverMinutos(dia.minutos) : 'sem estudo'}`}
-                />
-              ))}
+        <div className="constancia__corpo">
+          <div className="constancia__grade" role="img" aria-label={resumo}>
+            {semanas.map((semana) => (
+              <div className="constancia__semana" key={semana[0].chave}>
+                {semana.map((dia) => (
+                  <span
+                    key={dia.chave}
+                    className={`constancia__dia constancia__dia--${dia.futuro ? 'futuro' : dia.nivel}`}
+                    title={dia.futuro ? undefined : `${dia.rotulo}: ${dia.minutos > 0 ? descreverMinutos(dia.minutos) : 'sem estudo'}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          {diaInicial && (
+            <div className="constancia__periodo" aria-hidden="true">
+              <span>
+                {diaInicial}/{mesInicial}
+              </span>
+              <span>esta semana</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
 

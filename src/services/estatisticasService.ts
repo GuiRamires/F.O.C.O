@@ -19,6 +19,7 @@ export interface MinutosPorSemana {
   inicio: string
   rotulo: string
   minutos: number
+  sessoes: number
 }
 
 export interface Estatisticas {
@@ -119,13 +120,14 @@ function somarPorSemana(sessoes: SessaoComFoco[], agora: Date, semanas: number):
   for (let atras = semanas - 1; atras >= 0; atras--) {
     const inicio = somarDias(semanaAtual, -atras * 7)
     indicePorInicio.set(chaveDoDia(inicio), porSemana.length)
-    porSemana.push({ inicio: chaveDoDia(inicio), rotulo: rotuloDoDia(inicio), minutos: 0 })
+    porSemana.push({ inicio: chaveDoDia(inicio), rotulo: rotuloDoDia(inicio), minutos: 0, sessoes: 0 })
   }
 
   for (const sessao of sessoes) {
     const indice = indicePorInicio.get(chaveDoDia(inicioDaSemana(diaDaSessao(sessao))))
     if (indice !== undefined) {
       porSemana[indice].minutos += sessao.duracaoMinutos
+      porSemana[indice].sessoes += 1
     }
   }
 

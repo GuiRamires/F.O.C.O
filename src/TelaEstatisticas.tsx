@@ -156,11 +156,11 @@ export function PainelEstatisticas({ sessoes, focos, focoId, onTrocarFoco, agora
       )}
 
       <div className="observar__grade">
-        <Cartao titulo="Tempo por semana" subtitulo="Semanas começando na segunda-feira">
+        <Cartao titulo="Tempo por semana" subtitulo="Soma das sessões de cada semana, de segunda a domingo">
           <GraficoSemanas dados={estatisticas.porSemana} />
         </Cartao>
 
-        <Cartao titulo="Constância" subtitulo="Cada quadrado é um dia">
+        <Cartao titulo="Constância" subtitulo="Cada coluna é uma semana, e cada quadrado, um dia">
           <MapaConstancia constancia={constancia} />
         </Cartao>
 
