@@ -6,6 +6,9 @@ export type AcaoLog =
   | 'criar_foco'
   | 'atribuir_estrela'
   | 'remover_estrela'
+  | 'arquivar_foco'
+  | 'resgatar_foco'
+  | 'excluir_foco'
 
 export async function registrarLog(
   userId: string,

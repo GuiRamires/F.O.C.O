@@ -1,0 +1,62 @@
+.laboratorio-modal {
+  --cor-laboratorio: #b794f6;
+  --cor-laboratorio-botao: #7c4dff;
+}
+
+.laboratorio-modal .retomada__titulo,
+.laboratorio-modal strong {
+  color: var(--cor-laboratorio);
+}
+
+.laboratorio-modal--exclusao .retomada__titulo,
+.laboratorio-modal--exclusao .laboratorio-modal__palavra {
+  color: var(--cor-erro);
+}
+
+.laboratorio-modal__botao {
+  width: 100%;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--cor-laboratorio-botao);
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.laboratorio-modal__botao:hover,
+.laboratorio-modal__botao:focus-visible {
+  filter: brightness(1.15);
+}
+
+.laboratorio-modal__botao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.laboratorio-modal__palavra {
+  font-size: 1.25rem;
+  letter-spacing: 0.15em;
+}
+
+.laboratorio-modal__nota {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.card-foco__selo {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid rgba(183, 148, 246, 0.6);
+  border-radius: 10px;
+  color: #b794f6;
+  font-size: 0.8rem;
+}
+
+.card-foco__data {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}

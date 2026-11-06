@@ -1,12 +1,43 @@
 import { useEffect, useRef } from 'react'
 import './styles/menuAcoes.css'
 
+export type IconeAcao = 'concentrar' | 'arquivar' | 'resgatar' | 'excluir'
+
+export interface AcaoMenu {
+  rotulo: string
+  icone: IconeAcao
+  aoEscolher: () => void
+  variante?: 'laboratorio' | 'perigo'
+}
+
 interface MenuAcoesFocoProps {
-  onConcentrar: () => void
+  acoes: AcaoMenu[]
+  aviso?: string
   onFechar: () => void
 }
 
-function MenuAcoesFoco({ onConcentrar, onFechar }: MenuAcoesFocoProps) {
+function IconeDaAcao({ icone }: { icone: IconeAcao }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      {icone === 'concentrar' && (
+        <>
+          <circle cx="12" cy="13" r="8" />
+          <path d="M12 9v4l2 2M9 2h6" />
+        </>
+      )}
+      {icone === 'arquivar' && (
+        <>
+          <rect x="2" y="4" width="20" height="5" rx="1" />
+          <path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9M10 13h4" />
+        </>
+      )}
+      {icone === 'resgatar' && <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />}
+      {icone === 'excluir' && <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />}
+    </svg>
+  )
+}
+
+function MenuAcoesFoco({ acoes, aviso, onFechar }: MenuAcoesFocoProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -36,13 +67,19 @@ function MenuAcoesFoco({ onConcentrar, onFechar }: MenuAcoesFocoProps) {
       role="menu"
       onClick={(evento) => evento.stopPropagation()}
     >
-      <button type="button" role="menuitem" className="menu-acoes__item" onClick={onConcentrar}>
-        <span>Concentrar</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="12" cy="13" r="8" />
-          <path d="M12 9v4l2 2M9 2h6" />
-        </svg>
-      </button>
+      {acoes.map((acao) => (
+        <button
+          key={acao.rotulo}
+          type="button"
+          role="menuitem"
+          className={`menu-acoes__item${acao.variante ? ` menu-acoes__item--${acao.variante}` : ''}`}
+          onClick={acao.aoEscolher}
+        >
+          <span>{acao.rotulo}</span>
+          <IconeDaAcao icone={acao.icone} />
+        </button>
+      ))}
+      {aviso && <p className="menu-acoes__aviso">{aviso}</p>}
     </div>
   )
 }
