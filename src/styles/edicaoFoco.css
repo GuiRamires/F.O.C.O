@@ -1,0 +1,88 @@
+.edicao-modal .retomada__titulo {
+  color: var(--cor-primaria);
+  text-align: center;
+}
+
+.edicao-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.edicao-modal__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.edicao-modal__rotulo {
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.edicao-modal__campo {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--cor-texto);
+  font: inherit;
+}
+
+.edicao-modal__campo:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+}
+
+.edicao-modal__campo option {
+  background: var(--menu-fundo);
+}
+
+textarea.edicao-modal__campo {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.edicao-modal__paleta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.edicao-modal__cor {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--cor-amostra);
+  box-shadow: inset 0 0 0 2px var(--menu-fundo);
+  cursor: pointer;
+}
+
+.edicao-modal__cor[aria-checked='true'] {
+  border-color: var(--cor-texto);
+}
+
+.edicao-modal__cor:focus-visible {
+  outline: 2px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+.edicao-modal__nota {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.edicao-modal__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}

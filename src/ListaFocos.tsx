@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { FocoComProgresso } from './services/focoService'
 import { estaNoTop3, type AvaliacaoEstrela } from './services/estrelaService'
+import { corDoFocoNaPilha, estadoVisualDoFoco } from './services/estadoVisualService'
+import { podeEditar } from './services/edicaoFocoService'
 import { avaliarArquivamento, STATUS_ATIVO, STATUS_LABORATORIO, type ResultadoResgate } from './services/laboratorioService'
 import {
   podeMudarDePosicao,
@@ -15,6 +17,7 @@ import {
 } from './controllers/estrelaController'
 import { handleArquivarFoco, handleExcluirFoco, handleResgatarFoco } from './controllers/laboratorioController'
 import { handleMudarPosicao } from './controllers/posicaoController'
+import { handleEditarFoco } from './controllers/edicaoFocoController'
 import { descreverMinutos } from './utils/formatarHoras'
 import MenuAcoesFoco, { type AcaoMenu } from './MenuAcoesFoco'
 import ModalAtribuirEstrela from './ModalAtribuirEstrela'
@@ -23,7 +26,9 @@ import ModalArquivarFoco from './ModalArquivarFoco'
 import ModalFocoResgatado from './ModalFocoResgatado'
 import ModalExcluirFoco from './ModalExcluirFoco'
 import ModalMudarPosicao from './ModalMudarPosicao'
+import ModalEditarFoco from './ModalEditarFoco'
 import './styles/laboratorio.css'
+import './styles/pilha.css'
 
 interface ListaFocosProps {
   focos: FocoComProgresso[]
@@ -35,6 +40,7 @@ interface ListaFocosProps {
 type ModalAberto =
   | { tipo: 'atribuir'; foco: FocoComProgresso; avaliacao: AvaliacaoEstrela }
   | { tipo: 'remover'; foco: FocoComProgresso }
+  | { tipo: 'editar'; foco: FocoComProgresso }
   | { tipo: 'posicao'; foco: FocoComProgresso }
   | { tipo: 'arquivar'; foco: FocoComProgresso }
   | { tipo: 'resgatado'; foco: FocoComProgresso; resultado: ResultadoResgate }
@@ -112,6 +118,15 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
         },
       },
     ]
+
+    if (podeEditar(foco)) {
+      acoes.push({
+        rotulo: 'Editar',
+        icone: 'editar',
+        aoEscolher: () => abrirModal({ tipo: 'editar', foco }),
+        variante: 'secundario',
+      })
+    }
 
     if (podeMudarDePosicao(foco, pilha)) {
       acoes.push({
@@ -194,7 +209,6 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
             <CardFoco
               key={foco.id}
               foco={foco}
-              desativado
               podeReceberEstrela={false}
               processando={processandoId === foco.id}
               menu={menuDoFocoNoLaboratorio(foco)}
@@ -220,6 +234,15 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
         <ModalRemoverEstrela
           tituloFoco={modal.foco.titulo}
           onRemover={(fraseDigitada) => handleRemoverEstrela(modal.foco, userId, fraseDigitada, focosAtivos.length)}
+          onConcluido={concluirAcao}
+          onFechar={fecharModal}
+        />
+      )}
+
+      {modal?.tipo === 'editar' && (
+        <ModalEditarFoco
+          foco={modal.foco}
+          onSalvar={(dados) => handleEditarFoco(modal.foco, dados, userId)}
           onConcluido={concluirAcao}
           onFechar={fecharModal}
         />
@@ -273,7 +296,6 @@ function ListaFocos({ focos, userId, onFocoAtualizado, onConcentrar }: ListaFoco
 
 interface CardFocoProps {
   foco: FocoComProgresso
-  desativado?: boolean
   podeReceberEstrela: boolean
   processando?: boolean
   onCliqueEstrela?: () => void
@@ -289,7 +311,6 @@ function descreverData(dataIso: string): string {
 
 function CardFoco({
   foco,
-  desativado = false,
   podeReceberEstrela,
   processando = false,
   onCliqueEstrela,
@@ -298,46 +319,43 @@ function CardFoco({
   onAbrirMenu,
   onFecharMenu,
 }: CardFocoProps) {
+  const estado = estadoVisualDoFoco(foco)
+  const cor = corDoFocoNaPilha(foco)
+  const noLaboratorio = estado === 'laboratorio'
+
   return (
     <div
-      className={`card-foco card-foco--clicavel ${menuAberto ? 'card-foco--selecionado' : ''}`}
+      className={`card-foco card-foco--clicavel card-foco--${estado}${menuAberto ? ' card-foco--selecionado' : ''}`}
+      style={cor ? ({ '--cor-foco': cor } as CSSProperties) : undefined}
       onClick={processando ? undefined : onAbrirMenu}
       aria-busy={processando}
-      style={{
-        border: '1px solid #444',
-        borderRadius: '8px',
-        padding: '1rem',
-        marginBottom: '0.75rem',
-        backgroundColor: foco.tem_estrela ? '#ffc107' : 'transparent',
-        color: foco.tem_estrela ? '#000' : 'inherit',
-      }}
     >
-      <div style={{ opacity: desativado && !menuAberto ? 0.5 : 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h5 style={{ margin: 0 }}>{foco.titulo}</h5>
+      <div className="card-foco__conteudo">
+        <div className="card-foco__linha">
+          <h5 className="card-foco__titulo">{foco.titulo}</h5>
           <span>{descreverMinutos(Math.round(foco.horasAcumuladas * 60))}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+        <div className="card-foco__linha">
           {podeReceberEstrela ? (
             <button
               type="button"
+              className="card-foco__estrela"
               onClick={(evento) => {
                 evento.stopPropagation()
                 onCliqueEstrela?.()
               }}
               disabled={processando}
               aria-label={foco.tem_estrela ? 'Retirar a Estrela Dourada' : 'Dar a Estrela Dourada'}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: foco.tem_estrela ? '#000' : '#666' }}
             >
               {foco.tem_estrela ? '⭐' : '☆'}
             </button>
           ) : (
             <span />
           )}
-          <span style={{ marginLeft: 'auto' }}>{Math.floor(foco.porcentagem)}%</span>
+          <span>{Math.floor(foco.porcentagem)}%</span>
         </div>
-        {processando && desativado && <div className="card-foco__data">Resgatando...</div>}
-        {!processando && desativado && foco.arquivado_em && (
+        {processando && noLaboratorio && <div className="card-foco__data">Resgatando...</div>}
+        {!processando && noLaboratorio && foco.arquivado_em && (
           <div className="card-foco__data">No Laboratório desde {descreverData(foco.arquivado_em)}</div>
         )}
         {foco.aguardandoPratica && (

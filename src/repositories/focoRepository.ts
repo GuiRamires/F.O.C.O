@@ -14,6 +14,13 @@ export interface Foco {
   created_at: string
 }
 
+export interface AlteracaoFoco {
+  titulo: string
+  meta_horas: number
+  observacoes: string | null
+  cor_hex: string | null
+}
+
 export interface NovoFoco {
   titulo: string
   meta_horas: number
@@ -95,6 +102,21 @@ export async function removerEstrelaDoFoco(focoId: string, novaPosicao: number):
   if (error) {
     throw new Error(`Erro ao remover a Estrela: ${error.message}`)
   }
+}
+
+export async function atualizarFoco(focoId: string, alteracao: AlteracaoFoco): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('focos')
+    .update(alteracao)
+    .eq('id', focoId)
+    .eq('status', 'ativo')
+    .select('id')
+
+  if (error) {
+    throw new Error(`Erro ao editar o Foco: ${error.message}`)
+  }
+
+  return data.length > 0
 }
 
 export async function reordenarFocoNaPilha(focoId: string, novaPosicao: number): Promise<void> {

@@ -4,6 +4,7 @@ export type AcaoLog =
   | 'login'
   | 'cadastro'
   | 'criar_foco'
+  | 'editar_foco'
   | 'atribuir_estrela'
   | 'remover_estrela'
   | 'reordenar_foco'

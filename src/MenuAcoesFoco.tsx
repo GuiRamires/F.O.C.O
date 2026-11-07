@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import './styles/menuAcoes.css'
 
-export type IconeAcao = 'concentrar' | 'mover' | 'arquivar' | 'resgatar' | 'excluir'
+export type IconeAcao = 'concentrar' | 'editar' | 'mover' | 'arquivar' | 'resgatar' | 'excluir'
 
 export interface AcaoMenu {
   rotulo: string
@@ -25,6 +25,7 @@ function IconeDaAcao({ icone }: { icone: IconeAcao }) {
           <path d="M12 9v4l2 2M9 2h6" />
         </>
       )}
+      {icone === 'editar' && <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />}
       {icone === 'mover' && <path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4" />}
       {icone === 'arquivar' && (
         <>

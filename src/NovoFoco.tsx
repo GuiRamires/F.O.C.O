@@ -1,20 +1,12 @@
 import { useState } from 'react'
 import { handleCriarFoco } from './controllers/focoController'
+import { OPCOES_META } from './services/opcoesFoco'
 
 interface NovoFocoProps {
   userId: string
   onFocoCriado: () => void
   onCancelar: () => void
 }
-
-const OPCOES_META = [
-  { label: '1 semana (7 dias)', horas: 168 },
-  { label: '2 semanas (14 dias)', horas: 336 },
-  { label: '1 mês (30 dias)', horas: 720 },
-  { label: '3 meses (90 dias)', horas: 2160 },
-  { label: '6 meses (180 dias)', horas: 4320 },
-  { label: '1 ano (365 dias)', horas: 8760 },
-]
 
 function NovoFoco({ userId, onFocoCriado, onCancelar }: NovoFocoProps) {
   const [titulo, setTitulo] = useState('')
