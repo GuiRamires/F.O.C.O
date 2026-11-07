@@ -1,6 +1,7 @@
 import { atualizarFoco } from '../repositories/focoRepository'
 import { STATUS_ATIVO } from './laboratorioService'
 import { corEhDaPaleta, metaEhValida } from './opcoesFoco'
+import { validarTextosDoFoco } from './textoFoco'
 import { registrarLog } from './logService'
 
 export interface FocoParaEditar {
@@ -61,8 +62,10 @@ export function avaliarEdicao(foco: FocoParaEditar, dados: DadosDaEdicao): Avali
 
   const novos = normalizarEdicao(dados)
 
-  if (!novos.titulo) {
-    return { permitido: false, mensagem: 'O nome do F.O.C.O é obrigatório.' }
+  const erroDeTexto = validarTextosDoFoco(novos.titulo, novos.observacoes)
+
+  if (erroDeTexto) {
+    return { permitido: false, mensagem: erroDeTexto }
   }
 
   if (!metaEhValida(novos.meta_horas) && novos.meta_horas !== foco.meta_horas) {

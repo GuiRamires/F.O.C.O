@@ -48,6 +48,13 @@ describe('editar Foco (RF27)', () => {
     expect(mensagem(INGLES, dados({ titulo: '   ' }))).toBe('O nome do F.O.C.O é obrigatório.')
   })
 
+  it('o nome e as observações seguem os mesmos limites do cadastro', () => {
+    expect(mensagem(INGLES, dados({ titulo: 'a'.repeat(41) }))).toContain('até 40')
+    expect(mensagem(INGLES, dados({ titulo: 'Inglês <b>' }))).toContain('só letras')
+    expect(mensagem(INGLES, dados({ observacoes: 'ver https://site.com' }))).toContain('pontuação')
+    expect(mensagem(INGLES, dados({ observacoes: 'c'.repeat(201) }))).toContain('até 200')
+  })
+
   it('a meta precisa ser uma das opções fixas (RN09.2)', () => {
     expect(avaliarEdicao(INGLES, dados({ meta_horas: 2160 }))).toEqual({ permitido: true })
     expect(mensagem(INGLES, dados({ meta_horas: 999 }))).toContain('metas disponíveis')

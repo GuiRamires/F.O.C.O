@@ -1,6 +1,8 @@
 import { getFocosByUserId, getTotalMinutosByFocoId, existeSessaoDesde, criarFoco } from '../repositories/focoRepository'
 import type { Foco, NovoFoco } from '../repositories/focoRepository'
 import { aguardaPraticaAposResgate, STATUS_ATIVO } from './laboratorioService'
+import { metaEhValida } from './opcoesFoco'
+import { validarTextosDoFoco } from './textoFoco'
 import { registrarLog } from './logService'
 
 export interface FocoComProgresso extends Foco {
@@ -31,7 +33,21 @@ export async function listarFocosComProgresso(userId: string): Promise<FocoComPr
   return focosComProgresso
 }
 
+export function validarNovoFoco(foco: NovoFoco): string | null {
+  const erroDeTexto = validarTextosDoFoco(foco.titulo, foco.observacoes)
+  if (erroDeTexto) return erroDeTexto
+  if (!metaEhValida(foco.meta_horas)) return 'Escolha uma das metas disponíveis.'
+  return null
+}
+
 export async function criarNovoFoco(userId: string, foco: NovoFoco): Promise<void> {
-  await criarFoco(userId, foco)
-  await registrarLog(userId, 'criar_foco', { titulo: foco.titulo })
+  const erro = validarNovoFoco(foco)
+
+  if (erro) {
+    throw new Error(erro)
+  }
+
+  const titulo = foco.titulo.trim()
+  await criarFoco(userId, { titulo, meta_horas: foco.meta_horas, observacoes: foco.observacoes.trim() })
+  await registrarLog(userId, 'criar_foco', { titulo })
 }

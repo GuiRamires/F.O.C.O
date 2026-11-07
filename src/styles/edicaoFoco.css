@@ -48,6 +48,12 @@ textarea.edicao-modal__campo {
   resize: vertical;
 }
 
+.edicao-modal__contador {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
 .edicao-modal__paleta {
   display: flex;
   flex-wrap: wrap;

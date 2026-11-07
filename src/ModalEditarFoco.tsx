@@ -2,6 +2,13 @@ import { useState, type CSSProperties, type FormEvent } from 'react'
 import type { FocoComProgresso } from './services/focoService'
 import type { DadosDaEdicao, ResultadoEdicao } from './services/edicaoFocoService'
 import { COR_PADRAO_FOCO, OPCOES_META, PALETA_FOCO, metaEhValida } from './services/opcoesFoco'
+import {
+  LIMITE_OBSERVACOES,
+  LIMITE_TITULO,
+  mascararObservacoes,
+  mascararTitulo,
+  validarTextosDoFoco,
+} from './services/textoFoco'
 import { descreverMinutos } from './utils/formatarHoras'
 import './styles/timer.css'
 import './styles/edicaoFoco.css'
@@ -31,8 +38,10 @@ function ModalEditarFoco({ foco, onSalvar, onConcluido, onFechar }: ModalEditarF
     evento.preventDefault()
     setErro('')
 
-    if (!titulo.trim()) {
-      setErro('O nome do F.O.C.O é obrigatório.')
+    const erroDeTexto = validarTextosDoFoco(titulo, observacoes)
+
+    if (erroDeTexto) {
+      setErro(erroDeTexto)
       return
     }
 
@@ -60,9 +69,12 @@ function ModalEditarFoco({ foco, onSalvar, onConcluido, onFechar }: ModalEditarF
               className="edicao-modal__campo"
               type="text"
               value={titulo}
-              onChange={(evento) => setTitulo(evento.target.value)}
+              onChange={(evento) => setTitulo(mascararTitulo(evento.target.value))}
               autoFocus
             />
+            <span className="edicao-modal__contador">
+              Letras, números, espaços e hífen · {titulo.length}/{LIMITE_TITULO}
+            </span>
           </label>
 
           <label className="edicao-modal__grupo">
@@ -85,8 +97,11 @@ function ModalEditarFoco({ foco, onSalvar, onConcluido, onFechar }: ModalEditarF
             <textarea
               className="edicao-modal__campo"
               value={observacoes}
-              onChange={(evento) => setObservacoes(evento.target.value)}
+              onChange={(evento) => setObservacoes(mascararObservacoes(evento.target.value))}
             />
+            <span className="edicao-modal__contador">
+              {observacoes.length}/{LIMITE_OBSERVACOES}
+            </span>
           </label>
 
           <fieldset className="edicao-modal__grupo">

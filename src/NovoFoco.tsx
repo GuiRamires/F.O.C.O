@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { handleCriarFoco } from './controllers/focoController'
 import { OPCOES_META } from './services/opcoesFoco'
+import {
+  LIMITE_OBSERVACOES,
+  LIMITE_TITULO,
+  mascararObservacoes,
+  mascararTitulo,
+  validarTextosDoFoco,
+} from './services/textoFoco'
+
+const ESTILO_CONTADOR = { display: 'block', textAlign: 'right', fontSize: '0.8rem', opacity: 0.7 } as const
 
 interface NovoFocoProps {
   userId: string
@@ -19,8 +28,10 @@ function NovoFoco({ userId, onFocoCriado, onCancelar }: NovoFocoProps) {
     e.preventDefault()
     setErro('')
 
-    if (!titulo.trim()) {
-      setErro('O nome do F.O.C.O é obrigatório.')
+    const erroDeTexto = validarTextosDoFoco(titulo, observacoes)
+
+    if (erroDeTexto) {
+      setErro(erroDeTexto)
       return
     }
 
@@ -57,10 +68,13 @@ function NovoFoco({ userId, onFocoCriado, onCancelar }: NovoFocoProps) {
             <input
               type="text"
               value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
+              onChange={(e) => setTitulo(mascararTitulo(e.target.value))}
               style={{ width: '100%', padding: '0.5rem' }}
               placeholder="Ex: TCC - Projeto WEB"
             />
+            <small style={ESTILO_CONTADOR}>
+              Letras, números, espaços e hífen · {titulo.length}/{LIMITE_TITULO}
+            </small>
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
@@ -82,10 +96,13 @@ function NovoFoco({ userId, onFocoCriado, onCancelar }: NovoFocoProps) {
             <label>Observações</label><br />
             <textarea
               value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
+              onChange={(e) => setObservacoes(mascararObservacoes(e.target.value))}
               style={{ width: '100%', padding: '0.5rem', minHeight: '80px' }}
               placeholder="Ex: Criar projeto Web com métricas aprendidas em Aula"
             />
+            <small style={ESTILO_CONTADOR}>
+              {observacoes.length}/{LIMITE_OBSERVACOES}
+            </small>
           </div>
 
           {erro && (
