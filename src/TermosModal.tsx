@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 
 interface TermosModalProps {
@@ -8,11 +7,10 @@ interface TermosModalProps {
   somenteLeitura?: boolean
 }
 
-
 const TEXTO_TERMOS = `
 Termo de Uso e Política de Privacidade — F.O.C.O.
 
-Versão 1.0 — 25/09/2026]
+Versão 1.0 — 25/09/2026
 
 PARTE 1 — TERMOS DE USO
 
@@ -28,7 +26,7 @@ O uso do F.O.C.O. é destinado a pessoas com 18 anos completos ou mais. Não há
 
 1.3 Criação e proteção da conta, papéis e permissões
 
-O cadastro exige nome, e-mail e senha. Ao se cadastrar, o usuário é registrado com o papel de (Aluno ou Mentor) , conforme escolha própria no momento do cadastro. Um terceiro papel, 9Administrador), existe no sistema para fins de gestão técnica da plataforma, mas não é atribuível por autocadastro - é reservado à equipe responsável pelo desenvolvimento e manutenção do projeto.
+O cadastro exige nome, e-mail e senha. Ao se cadastrar, o usuário é registrado com o papel de Aluno ou Mentor, conforme escolha própria no momento do cadastro. Um terceiro papel, Administrador, existe no sistema para fins de gestão técnica da plataforma, mas não é atribuível por autocadastro - é reservado à equipe responsável pelo desenvolvimento e manutenção do projeto.
 
 Cada papel tem acesso a funcionalidades e dados distintos:
 
@@ -46,7 +44,7 @@ O usuário compromete-se a fornecer informações verdadeiras no cadastro e a n�
 
 1.5 Conteúdo enviado pelo usuário
 
-Os títulos, observações e relatos inseridos pelo usuário em seus Focos e sessões de estudo permanecem de sua titularidade. O F.O.C.O. armazena esse conteúdo exclusivamente para viabilizar o funcionamento do serviço, sem finalidade de reutilização, publicação ou compartilhamento com terceiros.
+Os títulos, observações e registros de aprendizado inseridos pelo usuário em seus Focos e sessões de estudo permanecem de sua titularidade. O F.O.C.O. armazena esse conteúdo exclusivamente para viabilizar o funcionamento do serviço, sem finalidade de reutilização, publicação ou compartilhamento com terceiros.
 
 1.6 Indisponibilidade, manutenção e encerramento
 
@@ -62,9 +60,9 @@ PARTE 2 — POLÍTICA DE PRIVACIDADE
 
 2.1 Responsável pelo tratamento (controlador)
 
-Para fins deste protótipo acadêmico, o controlador dos dados é o desenvolvedor responsável pelo projeto: **Guilherme Ramires Lana**, sob orientação do Prof. Leandro Miranda de Almeida (UMC). Em uma eventual implantação real e comercial do F.O.C.O., o controlador seria a pessoa jurídica responsável pela operação da plataforma.
+Para fins deste protótipo acadêmico, o controlador dos dados é o desenvolvedor responsável pelo projeto: Guilherme Ramires Lana, sob orientação do Prof. Leandro Miranda de Almeida (UMC). Em uma eventual implantação real e comercial do F.O.C.O., o controlador seria a pessoa jurídica responsável pela operação da plataforma.
 
-Canal de contato para assuntos de privacidade**: [gu1.r4m1r3s@gmail.com]
+Canal de contato para assuntos de privacidade: gu1.r4m1r3s@gmail.com
 
 2.2 Dados pessoais tratados
 
@@ -72,7 +70,7 @@ Canal de contato para assuntos de privacidade**: [gu1.r4m1r3s@gmail.com]
 
 | Identificação e contato | Nome, e-mail | Formulário de cadastro |
 | Credenciais de acesso | Senha (armazenada apenas como hash criptográfico, nunca em texto legível) | Formulário de cadastro |
-| Dados de uso da plataforma | Títulos de Focos, meta de horas definida, observações, relatos de sessões de estudo, duração das sessões | Telas de criação de Foco e registro de sessões |
+| Dados de uso da plataforma | Títulos de Focos, meta de horas definida, observações, registros de aprendizado das sessões de estudo, duração das sessões | Telas de criação de Foco e registro de sessões |
 | Papel do usuário | Aluno, Mentor ou Administrador | Definido no cadastro (Aluno/Mentor) ou atribuído administrativamente (Admin) |
 | Registros de auditoria | Ação realizada (login, cadastro, criação de Foco, atribuição de prioridade), data e hora | Gerado automaticamente pelo sistema a cada ação relevante |
 | Dados técnicos de sessão | Token de autenticação (JWT), data/hora do último login | Gerado pelo Supabase Auth no momento do login |
@@ -82,7 +80,7 @@ Não coletamos: CPF, endereço completo, data de nascimento, fotografia, dados d
 2.3 Finalidades e hipóteses legais
 
 | Dado | Finalidade específica | Hipótese legal |
-|
+
 | Nome, e-mail, senha | Autenticar o acesso à conta e permitir a identificação do usuário dentro da plataforma | Execução de contrato (Art. 7º, V) - necessário para a prestação do serviço solicitado pelo usuário |
 | E-mail | Envio de mensagem de confirmação de cadastro | Execução de contrato / legítimo interesse na comunicação sobre o próprio cadastro do usuário |
 | Títulos de Focos, metas, observações, sessões | Viabilizar a funcionalidade central da plataforma: organização e acompanhamento dos estudos do próprio usuário | Execução de contrato |
@@ -157,17 +155,17 @@ Em caráter de transparência, reconhecemos as seguintes limitações da present
 Esta política pode ser atualizada para refletir mudanças no sistema ou na legislação aplicável. A data e o número de versão constam no topo deste documento.
 
 
-Última atualização: [25/09/2025].
+Última atualização: 25/09/2026.
 `.trim()
 
 function TermosModal({ aberto, onAceitar, onFechar, somenteLeitura = false }: TermosModalProps) {
   const [scrollCompleto, setScrollCompleto] = useState(false)
-  useEffect(() => {
-  if (aberto) {
-    setScrollCompleto(false)
-  }
-}, [aberto])
 
+  useEffect(() => {
+    if (aberto) {
+      setScrollCompleto(false)
+    }
+  }, [aberto])
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
@@ -227,14 +225,14 @@ function TermosModal({ aberto, onAceitar, onFechar, somenteLeitura = false }: Te
 
         {!somenteLeitura && !scrollCompleto && (
           <p style={{ fontSize: '0.85rem', color: '#aaa', marginBottom: '0.75rem' }}>
-          Role até o final do texto para habilitar o botão de aceite.
+            Role até o final do texto para habilitar o botão de aceite.
           </p>
         )}
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {somenteLeitura ? (
             <button className="btn btn-outline-light" onClick={onFechar}>
-            Fechar
+              Fechar
             </button>
           ) : (
             <>
