@@ -10,9 +10,14 @@ interface CadastroProps {
   onVoltarParaLogin: () => void
 }
 
+const MENSAGEM_CADASTRO_RECUSADO =
+  'Não foi possível concluir o cadastro com esses dados. Se você já tem uma conta, faça login.'
+const MENSAGEM_ERRO_INESPERADO = 'Não foi possível concluir o cadastro agora. Tente novamente em alguns minutos.'
+
 function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
+  const [confirmarEmail, setConfirmarEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -28,21 +33,24 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
 
     const nomeLimpo = nome.trim()
     const emailLimpo = email.trim()
+    const confirmarEmailLimpo = confirmarEmail.trim()
 
-    // Validação de campos vazios
     const errosValidacao: string[] = []
     if (!nomeLimpo) errosValidacao.push('O nome é obrigatório.')
     if (!emailLimpo) errosValidacao.push('O e-mail é obrigatório.')
+    if (!confirmarEmailLimpo) errosValidacao.push('A confirmação de e-mail é obrigatória.')
     if (!senha) errosValidacao.push('A senha é obrigatória.')
     if (!confirmarSenha) errosValidacao.push('A confirmação de senha é obrigatória.')
     if (!termosAceitos) errosValidacao.push('Você precisa aceitar os Termos de Uso para criar sua conta.')
 
-    // Validação de senhas iguais
+    if (emailLimpo && confirmarEmailLimpo && emailLimpo.toLowerCase() !== confirmarEmailLimpo.toLowerCase()) {
+      errosValidacao.push('Os e-mails não coincidem.')
+    }
+
     if (senha && confirmarSenha && senha !== confirmarSenha) {
       errosValidacao.push('As senhas não coincidem.')
     }
 
-    // Validação de força da senha
     if (senha) {
       const resultadoSenha = validarSenha(senha, nomeLimpo, emailLimpo)
       if (!resultadoSenha.valida) {
@@ -71,28 +79,29 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
     setCarregando(false)
 
     if (error) {
-  if (error.message.includes('User already registered')) {
-    setErros(['Esse e-mail já está cadastrado. Tente fazer login.'])
-  } else if (error.message.includes('Password should be at least')) {
-    setErros(['A senha não atende aos requisitos mínimos do sistema.'])
-  } else {
-    setErros([error.message])
-  }
-  return
-}
-
-    if (data.user && data.user.identities && data.user.identities.length === 0) {
-      setErros(['Esse e-mail já está cadastrado. Tente fazer login.'])
+      if (error.message.includes('User already registered')) {
+        setErros([MENSAGEM_CADASTRO_RECUSADO])
+      } else if (error.message.includes('Password should be at least')) {
+        setErros(['A senha não atende aos requisitos mínimos do sistema.'])
+      } else {
+        setErros([MENSAGEM_ERRO_INESPERADO])
+      }
       return
     }
 
-    // Manda o e-mail de boas-vindas
-    supabase.functions.invoke('enviar-email-cadastro', {
-      body: { email: emailLimpo, nome: nomeLimpo },
-    }).catch((err) => {
-      console.error('Erro ao enviar e-mail de boas-vindas:', err)
-    })
-    
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setErros([MENSAGEM_CADASTRO_RECUSADO])
+      return
+    }
+
+    supabase.functions
+      .invoke('enviar-email-cadastro', {
+        body: { email: emailLimpo, nome: nomeLimpo },
+      })
+      .catch((err) => {
+        console.error('Erro ao enviar e-mail de boas-vindas:', err)
+      })
+
     if (data.user) {
       registrarLog(data.user.id, 'cadastro', { nome: nomeLimpo })
     }
@@ -105,8 +114,10 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
       <h1>F.O.C.O. — Criar Conta</h1>
       <form onSubmit={handleCadastro}>
         <div style={{ marginBottom: '1rem' }}>
-          <label>Nome</label><br />
+          <label htmlFor="cadastro-nome">Nome</label>
+          <br />
           <input
+            id="cadastro-nome"
             type="text"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
@@ -114,65 +125,94 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
           />
         </div>
 
-    <div style={{ marginBottom: '1rem' }}>
-      <label>Tipo de Conta</label><br />
-      <select
-        value={papel}
-        onChange={(e) => setPapel(e.target.value as 'aluno' | 'mentor')}
-        style={{ width: '100%', padding: '0.5rem' }}
-      >
-        <option value="aluno">Aluno</option>
-        <option value="mentor">Mentor</option>
-      </select>
-    </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="cadastro-papel">Tipo de Conta</label>
+          <br />
+          <select
+            id="cadastro-papel"
+            value={papel}
+            onChange={(e) => setPapel(e.target.value as 'aluno' | 'mentor')}
+            style={{ width: '100%', padding: '0.5rem' }}
+          >
+            <option value="aluno">Aluno</option>
+            <option value="mentor">Mentor</option>
+          </select>
+        </div>
 
         <div style={{ marginBottom: '1rem' }}>
-          <label>Email</label><br />
+          <label htmlFor="cadastro-email">Email</label>
+          <br />
           <input
+            id="cadastro-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             style={{ width: '100%', padding: '0.5rem' }}
           />
-       <div style={{ position: 'relative' }}>
-        <input
-          type={mostrarSenha ? 'text' : 'password'}
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem' }}
-        />
-        <button
-          type="button"
-          onClick={() => setMostrarSenha(!mostrarSenha)}
-          style={{
-            position: 'absolute',
-            right: '0.5rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            padding: 0,
-         }}
-  >
-    {mostrarSenha ? '👁' : '👁'}
-  </button>
-</div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="cadastro-confirmar-email">Confirmar Email</label>
+          <br />
+          <input
+            id="cadastro-confirmar-email"
+            type="email"
+            value={confirmarEmail}
+            onChange={(e) => setConfirmarEmail(e.target.value)}
+            style={{ width: '100%', padding: '0.5rem' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="cadastro-senha">Senha</label>
+          <br />
+          <div style={{ position: 'relative' }}>
+            <input
+              id="cadastro-senha"
+              type={mostrarSenha ? 'text' : 'password'}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem' }}
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarSenha(!mostrarSenha)}
+              aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              style={{
+                position: 'absolute',
+                right: '0.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                padding: 0,
+              }}
+            >
+              👁
+            </button>
+          </div>
           <BarraForcaSenha senha={senha} nome={nome} email={email} />
           <small style={{ color: '#aaa' }}>
-            8-20 caracteres, com ao menos 1 letra e 1 número.
+            8 a 20 caracteres, com letra maiúscula, letra minúscula e número, sem sequências (como 1234) e sem o seu
+            nome ou e-mail.
           </small>
         </div>
+
         <div style={{ marginBottom: '1rem' }}>
-          <label>Confirmar Senha</label><br />
+          <label htmlFor="cadastro-confirmar-senha">Confirmar Senha</label>
+          <br />
           <input
+            id="cadastro-confirmar-senha"
             type={mostrarSenha ? 'text' : 'password'}
             value={confirmarSenha}
             onChange={(e) => setConfirmarSenha(e.target.value)}
             style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
+
         <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <input
             type="checkbox"
@@ -191,7 +231,14 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
             <button
               type="button"
               onClick={() => setModalTermosAberto(true)}
-              style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#4dabf7',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: 0,
+              }}
             >
               Termos de Uso e Política de Privacidade
             </button>
@@ -223,7 +270,10 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
       </form>
       <p style={{ marginTop: '1rem' }}>
         Já tem conta?{' '}
-        <button onClick={onVoltarParaLogin} style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline' }}>
+        <button
+          onClick={onVoltarParaLogin}
+          style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline' }}
+        >
           Entrar
         </button>
       </p>
