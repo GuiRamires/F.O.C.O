@@ -92,7 +92,6 @@ describe('mudar a posição do Foco na pilha (RF11)', () => {
     expect(reordenarFocoNaPilha).toHaveBeenCalledWith('foco-5', 2)
     expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'reordenar_foco', {
       foco_id: 'foco-5',
-      titulo: 'Redação',
       de: 5,
       para: 2,
     })

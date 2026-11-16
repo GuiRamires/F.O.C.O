@@ -48,6 +48,6 @@ export async function criarNovoFoco(userId: string, foco: NovoFoco): Promise<voi
   }
 
   const titulo = foco.titulo.trim()
-  await criarFoco(userId, { titulo, meta_horas: foco.meta_horas, observacoes: foco.observacoes.trim() })
-  await registrarLog(userId, 'criar_foco', { titulo })
+  const focoId = await criarFoco(userId, { titulo, meta_horas: foco.meta_horas, observacoes: foco.observacoes.trim() })
+  await registrarLog(userId, 'criar_foco', { foco_id: focoId })
 }

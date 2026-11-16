@@ -35,7 +35,9 @@ describe('cadastrar Foco (RF09)', () => {
     expect(validarNovoFoco({ titulo: 'TCC', meta_horas: 99, observacoes: '' })).toContain('metas disponíveis')
   })
 
-  it('cria com os textos sem espaços nas pontas e registra o log (CA09.1, CA08.1)', async () => {
+  it('cria com os textos sem espaços nas pontas e registra o log sem o título (CA09.1, CA08.1)', async () => {
+    vi.mocked(criarFoco).mockResolvedValue('foco-1')
+
     await criarNovoFoco(USUARIO, { titulo: '  Inglês  ', meta_horas: 720, observacoes: ' prova em dezembro ' })
 
     expect(criarFoco).toHaveBeenCalledWith(USUARIO, {
@@ -43,6 +45,6 @@ describe('cadastrar Foco (RF09)', () => {
       meta_horas: 720,
       observacoes: 'prova em dezembro',
     })
-    expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'criar_foco', { titulo: 'Inglês' })
+    expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'criar_foco', { foco_id: 'foco-1' })
   })
 })

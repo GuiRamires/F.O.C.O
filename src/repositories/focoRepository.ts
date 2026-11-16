@@ -163,8 +163,8 @@ export async function excluirFocoDoLaboratorio(focoId: string): Promise<boolean>
   return data.length > 0
 }
 
-export async function criarFoco(userId: string, foco: NovoFoco): Promise<void> {
-  const { error } = await supabase
+export async function criarFoco(userId: string, foco: NovoFoco): Promise<string> {
+  const { data, error } = await supabase
     .from('focos')
     .insert({
       user_id: userId,
@@ -172,10 +172,14 @@ export async function criarFoco(userId: string, foco: NovoFoco): Promise<void> {
       meta_horas: foco.meta_horas,
       observacoes: foco.observacoes || null,
     })
+    .select('id')
+    .single()
 
   if (error) {
     throw new Error(`Erro ao criar Foco: ${error.message}`)
   }
+
+  return data.id
 }
 
 export async function getPapelUsuario(userId: string): Promise<string | null> {

@@ -86,7 +86,6 @@ export async function mudarPosicao(
   await reordenarFocoNaPilha(foco.id, novaPosicao)
   await registrarLog(userId, 'reordenar_foco', {
     foco_id: foco.id,
-    titulo: foco.titulo,
     de: foco.posicao,
     para: novaPosicao,
   })

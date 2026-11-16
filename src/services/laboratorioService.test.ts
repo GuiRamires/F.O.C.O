@@ -63,12 +63,12 @@ describe('arquivar Foco no Laboratório de Sonhos (RF15)', () => {
     expect(avaliarArquivamento(NO_LABORATORIO).permitido).toBe(false)
   })
 
-  it('arquiva no banco e registra o log com o título', async () => {
+  it('arquiva no banco e registra o log sem o título', async () => {
     const resultado = await arquivarFoco(ATIVO, USUARIO)
 
     expect(resultado.sucesso).toBe(true)
     expect(arquivarFocoNoLaboratorio).toHaveBeenCalledWith('foco-1')
-    expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'arquivar_foco', { foco_id: 'foco-1', titulo: 'Inglês' })
+    expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'arquivar_foco', { foco_id: 'foco-1' })
   })
 
   it('a regra é conferida no serviço, mesmo que a tela tente arquivar o Foco com a Estrela', async () => {
@@ -95,7 +95,6 @@ describe('resgatar Foco do Laboratório de Sonhos (RF18)', () => {
     expect(resultado.mensagem).toContain('4ª posição')
     expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'resgatar_foco', {
       foco_id: 'foco-1',
-      titulo: 'Inglês',
       posicao: 4,
     })
   })
@@ -188,7 +187,7 @@ describe('excluir Foco definitivamente (RF19)', () => {
 
     expect(resultado.sucesso).toBe(true)
     expect(excluirFocoDoLaboratorio).toHaveBeenCalledWith('foco-1')
-    expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'excluir_foco', { foco_id: 'foco-1', titulo: 'Inglês' })
+    expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'excluir_foco', { foco_id: 'foco-1' })
   })
 
   it('a palavra é validada de novo no serviço, e não só na tela (RN19.3)', async () => {

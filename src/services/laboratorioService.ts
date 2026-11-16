@@ -87,7 +87,7 @@ export async function arquivarFoco(foco: FocoDoLaboratorio, userId: string): Pro
   }
 
   await arquivarFocoNoLaboratorio(foco.id)
-  await registrarLog(userId, 'arquivar_foco', { foco_id: foco.id, titulo: foco.titulo })
+  await registrarLog(userId, 'arquivar_foco', { foco_id: foco.id })
 
   return { sucesso: true, mensagem: 'O Foco foi para o Laboratório de Sonhos. As horas dele continuam guardadas.' }
 }
@@ -100,7 +100,7 @@ export async function resgatarFoco(foco: FocoDoLaboratorio, userId: string): Pro
   }
 
   const posicao = await resgatarFocoDoLaboratorio(foco.id)
-  await registrarLog(userId, 'resgatar_foco', { foco_id: foco.id, titulo: foco.titulo, posicao })
+  await registrarLog(userId, 'resgatar_foco', { foco_id: foco.id, posicao })
 
   return { sucesso: true, mensagem: `O Foco voltou para a sua pilha, na ${posicao}ª posição.`, posicao }
 }
@@ -126,7 +126,7 @@ export async function excluirFoco(
     return { sucesso: false, mensagem: 'Este Foco não está mais no Laboratório de Sonhos. Atualize a página.' }
   }
 
-  await registrarLog(userId, 'excluir_foco', { foco_id: foco.id, titulo: foco.titulo })
+  await registrarLog(userId, 'excluir_foco', { foco_id: foco.id })
 
   return { sucesso: true, mensagem: 'O Foco foi excluído.' }
 }

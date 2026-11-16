@@ -90,7 +90,6 @@ describe('editar Foco (RF27)', () => {
     })
     expect(registrarLog).toHaveBeenCalledWith(USUARIO, 'editar_foco', {
       foco_id: 'foco-1',
-      titulo: 'Inglês B2',
       alteracoes: ['titulo', 'observacoes'],
     })
   })

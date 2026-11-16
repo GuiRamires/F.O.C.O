@@ -104,7 +104,7 @@ export async function editarFoco(foco: FocoParaEditar, dados: DadosDaEdicao, use
     return { sucesso: false, mensagem: 'Este Foco não está mais na sua pilha. Atualize a página.' }
   }
 
-  await registrarLog(userId, 'editar_foco', { foco_id: foco.id, titulo: novos.titulo, alteracoes: alterados })
+  await registrarLog(userId, 'editar_foco', { foco_id: foco.id, alteracoes: alterados })
 
   return { sucesso: true, mensagem: 'Foco atualizado.' }
 }
