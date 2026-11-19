@@ -9,3 +9,33 @@ entrypoint = "./functions/enviar-email-cadastro/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/enviar-email-cadastro/*.html" ]
+
+[functions.excluir-conta]
+enabled = true
+verify_jwt = false
+import_map = "./functions/excluir-conta/deno.json"
+entrypoint = "./functions/excluir-conta/index.ts"
+
+[functions.abrir-chamado-sem-login]
+enabled = true
+verify_jwt = false
+import_map = "./functions/abrir-chamado-sem-login/deno.json"
+entrypoint = "./functions/abrir-chamado-sem-login/index.ts"
+
+[functions.avisar-resposta-chamado]
+enabled = true
+verify_jwt = false
+import_map = "./functions/avisar-resposta-chamado/deno.json"
+entrypoint = "./functions/avisar-resposta-chamado/index.ts"
+
+[functions.bloquear-usuario]
+enabled = true
+verify_jwt = false
+import_map = "./functions/bloquear-usuario/deno.json"
+entrypoint = "./functions/bloquear-usuario/index.ts"
+
+[functions.avisar-inatividade]
+enabled = true
+verify_jwt = false
+import_map = "./functions/avisar-inatividade/deno.json"
+entrypoint = "./functions/avisar-inatividade/index.ts"

@@ -1,28 +1,29 @@
-import "@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "@supabase/server";
+import '@supabase/functions-js/edge-runtime.d.ts'
+import { enderecoDoSite, enviarEmail, escaparHtml, montarHtml } from '../_shared/email.ts'
+import { preflight, responder } from '../_shared/http.ts'
+import { clienteAdministrativo, usuarioDaRequisicao } from '../_shared/supabase.ts'
 
-export default {
-  fetch: withSupabase({ auth: ["publishable"] }, async (req) => {
-    const { email, nome } = await req.json();
+Deno.serve(async (req) => {
+  const recusa = preflight(req)
+  if (recusa) return recusa
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+  const cliente = clienteAdministrativo()
+  const usuario = await usuarioDaRequisicao(req, cliente)
+  if (!usuario?.email) return responder({ erro: 'Sessão inválida.' }, 401)
 
-    const resendResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "onboarding@resend.dev",
-        to: [email],
-        subject: "Bem-vindo ao F.O.C.O!",
-        html: `<h1>Olá, ${nome}!</h1><p>Seu cadastro no F.O.C.O foi realizado com sucesso. Bora organizar seus estudos! 🎯</p>`,
-      }),
-    });
+  const criadoHa = Date.now() - new Date(usuario.created_at).getTime()
+  if (criadoHa > 10 * 60 * 1000) return responder({ sucesso: false })
 
-    const data = await resendResponse.json();
+  const nome = escaparHtml(String(usuario.user_metadata?.nome ?? '').trim() || 'estudante')
+  const enviado = await enviarEmail(
+    usuario.email,
+    'Bem-vindo ao F.O.C.O.!',
+    montarHtml(`Olá, ${nome}!`, [
+      'Seu cadastro no F.O.C.O. foi realizado com sucesso.',
+      'Crie o seu primeiro Foco, defina a meta de horas e comece a sua primeira sessão de estudo.',
+      `<a href="${enderecoDoSite()}">Acessar a plataforma</a>`,
+    ]),
+  )
 
-    return Response.json({ sucesso: resendResponse.ok, data });
-  }),
-};
+  return responder({ sucesso: enviado })
+})

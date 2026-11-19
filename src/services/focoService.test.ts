@@ -4,6 +4,7 @@ vi.mock('../repositories/focoRepository', () => ({
   getFocosByUserId: vi.fn(),
   getTotalMinutosByFocoId: vi.fn(),
   existeSessaoDesde: vi.fn(),
+  getUltimaSessaoByFocoId: vi.fn(),
   criarFoco: vi.fn(),
 }))
 

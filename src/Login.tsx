@@ -5,9 +5,15 @@ import { registrarLog } from './services/logService'
 interface LoginProps {
   onLoginSuccess: () => void
   onIrParaCadastro: () => void
+  onRecuperarSenha: () => void
+  onNaoConsigoAcessar: () => void
+  onVoltarInicio: () => void
 }
 
-function Login({ onLoginSuccess, onIrParaCadastro }: LoginProps) {
+const MENSAGEM_CONTA_BLOQUEADA =
+  'Esta conta está bloqueada temporariamente. Para resolver, use a opção "Não consigo acessar minha conta" e fale com o suporte.'
+
+function Login({ onLoginSuccess, onIrParaCadastro, onRecuperarSenha, onNaoConsigoAcessar, onVoltarInicio }: LoginProps) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -41,10 +47,12 @@ function Login({ onLoginSuccess, onIrParaCadastro }: LoginProps) {
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
         setErros(['E-mail ou senha incorretos.'])
+      } else if (error.code === 'user_banned' || error.message.toLowerCase().includes('banned')) {
+        setErros([MENSAGEM_CONTA_BLOQUEADA])
       } else if (error.message.includes('Email not confirmed')) {
         setErros(['E-mail ainda não confirmado. Verifique sua caixa de entrada.'])
       } else {
-        setErros([error.message])
+        setErros(['Não foi possível entrar agora. Tente novamente em alguns minutos.'])
       }
       return
     }
@@ -113,10 +121,23 @@ function Login({ onLoginSuccess, onIrParaCadastro }: LoginProps) {
           {carregando ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
+      <p style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+        <button type="button" className="link-texto" onClick={onRecuperarSenha}>
+          Esqueci minha senha
+        </button>
+        <button type="button" className="link-texto" onClick={onNaoConsigoAcessar}>
+          Não consigo acessar minha conta
+        </button>
+      </p>
       <p style={{ marginTop: '1rem' }}>
         Não tem conta?{' '}
         <button onClick={onIrParaCadastro} style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline' }}>
           Cadastre-se
+        </button>
+      </p>
+      <p>
+        <button type="button" className="link-texto" onClick={onVoltarInicio}>
+          Voltar à página inicial
         </button>
       </p>
     </div>

@@ -11,6 +11,10 @@ export type AcaoLog =
   | 'arquivar_foco'
   | 'resgatar_foco'
   | 'excluir_foco'
+  | 'redefinir_senha'
+  | 'alterar_conta'
+  | 'exportar_focos'
+  | 'abrir_chamado'
 
 export async function registrarLog(
   userId: string,

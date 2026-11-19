@@ -55,6 +55,21 @@ export async function getTotalMinutosByFocoId(focoId: string): Promise<number> {
   return data.reduce((soma, sessao) => soma + sessao.duracao_minutos, 0)
 }
 
+export async function getUltimaSessaoByFocoId(focoId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('focus_sessions')
+    .select('created_at')
+    .eq('foco_id', focoId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (error) {
+    throw new Error(`Erro ao buscar a última sessão do foco: ${error.message}`)
+  }
+
+  return data[0]?.created_at ?? null
+}
+
 export async function existeSessaoDesde(focoId: string, desde: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('focus_sessions')
@@ -180,19 +195,4 @@ export async function criarFoco(userId: string, foco: NovoFoco): Promise<string>
   }
 
   return data.id
-}
-
-export async function getPapelUsuario(userId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('papel')
-    .eq('id', userId)
-    .single()
-
-  if (error) {
-    console.error('Erro ao buscar papel do usuário:', error.message)
-    return null
-  }
-
-  return data.papel
 }

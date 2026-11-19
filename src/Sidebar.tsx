@@ -1,14 +1,26 @@
 import { useState } from 'react'
 import TermosModal from './TermosModal'
 
+export type DestinoMenu = 'lista' | 'estatisticas' | 'conta' | 'suporte' | 'sobre'
+
 interface SidebarProps {
   aberta: boolean
+  nomeUsuario: string
+  telaAtual: string
   onFechar: () => void
-  onAbrirEstatisticas: () => void
+  onNavegar: (destino: DestinoMenu) => void
   onLogout: () => void
 }
 
-function Sidebar({ aberta, onFechar, onAbrirEstatisticas, onLogout }: SidebarProps) {
+const ITENS: { destino: DestinoMenu; rotulo: string }[] = [
+  { destino: 'lista', rotulo: 'Meus Focos' },
+  { destino: 'estatisticas', rotulo: 'Estatísticas' },
+  { destino: 'conta', rotulo: 'Minha conta' },
+  { destino: 'suporte', rotulo: 'Suporte' },
+  { destino: 'sobre', rotulo: 'Sobre nós' },
+]
+
+function Sidebar({ aberta, nomeUsuario, telaAtual, onFechar, onNavegar, onLogout }: SidebarProps) {
   const [modalTermosAberto, setModalTermosAberto] = useState(false)
 
   if (!aberta) return null
@@ -25,7 +37,8 @@ function Sidebar({ aberta, onFechar, onAbrirEstatisticas, onLogout }: SidebarPro
         }}
       />
 
-      <div
+      <nav
+        aria-label="Menu principal"
         style={{
           position: 'fixed',
           top: 0,
@@ -39,19 +52,23 @@ function Sidebar({ aberta, onFechar, onAbrirEstatisticas, onLogout }: SidebarPro
           display: 'flex',
           flexDirection: 'column',
           gap: '0.5rem',
+          overflowY: 'auto',
         }}
       >
-        <h5 style={{ marginBottom: '1rem' }}>Menu</h5>
+        <p style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
+          Olá, <strong>{nomeUsuario || 'estudante'}</strong>
+        </p>
 
-        <button className="btn btn-outline-light text-start" disabled>
-          Editar Login
-        </button>
-        <button className="btn btn-outline-light text-start" disabled>
-          Meus Focos
-        </button>
-        <button className="btn btn-outline-light text-start" onClick={onAbrirEstatisticas}>
-          Estatísticas
-        </button>
+        {ITENS.map((item) => (
+          <button
+            key={item.destino}
+            className={`btn text-start ${telaAtual === item.destino ? 'btn-light' : 'btn-outline-light'}`}
+            aria-current={telaAtual === item.destino ? 'page' : undefined}
+            onClick={() => onNavegar(item.destino)}
+          >
+            {item.rotulo}
+          </button>
+        ))}
         <button
           className="btn btn-outline-light text-start"
           onClick={() => setModalTermosAberto(true)}
@@ -64,7 +81,7 @@ function Sidebar({ aberta, onFechar, onAbrirEstatisticas, onLogout }: SidebarPro
         <button className="btn btn-warning" onClick={onLogout}>
           Sair
         </button>
-      </div>
+      </nav>
 
       <TermosModal
         aberto={modalTermosAberto}

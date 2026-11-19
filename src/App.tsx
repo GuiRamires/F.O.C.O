@@ -7,27 +7,47 @@ import NovoFoco from './NovoFoco'
 import { handleListarFocos } from './controllers/focoController'
 import { handleConfirmarDescarte, handleRestaurarSessao, handleSalvarSessao } from './controllers/sessaoController'
 import type { FocoComProgresso } from './services/focoService'
-import Sidebar from './Sidebar'
-import { getPapelUsuario } from './repositories/focoRepository'
-import PainelAdmin from './PainelAdmin'
+import Sidebar, { type DestinoMenu } from './Sidebar'
+import { handleCarregarPerfil } from './controllers/contaController'
+import { handleAceitarTermo, handleVerificarTermo } from './controllers/termoController'
+import { avisoDeNovaVersao } from './services/termoService'
+import PaginaInicial from './PaginaInicial'
+import RecuperarSenha from './RecuperarSenha'
+import ChamadoSemLogin from './ChamadoSemLogin'
+import SobreNos from './SobreNos'
+import ContaExcluida from './ContaExcluida'
+import TermosModal from './TermosModal'
+import BotaoSuporte from './BotaoSuporte'
 import TelaPreparacao from './TelaPreparacao'
 import TelaTimer from './TelaTimer'
 import { iniciarSessao, pausarSessao, retomarSessao, type SessaoEmAndamento } from './services/sessaoService'
 import { prepararAlerta } from './utils/alertaSonoro'
 import { usePersistirSessao } from './hooks/usePersistirSessao'
 import type { SessaoConcluida } from './TelaEstatisticas'
+import './styles/conta.css'
 
 const TelaEstatisticas = lazy(() => import('./TelaEstatisticas'))
+const PainelAdmin = lazy(() => import('./PainelAdmin'))
+const MinhaConta = lazy(() => import('./MinhaConta'))
+const TelaSuporte = lazy(() => import('./TelaSuporte'))
+
+type TelaAuth = 'inicio' | 'login' | 'cadastro' | 'chamadoSemLogin'
+type TelaAtual = 'lista' | 'novoFoco' | 'preparacao' | 'estatisticas' | 'conta' | 'suporte' | 'sobre'
 
 function App() {
   const [logado, setLogado] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [verificandoSessao, setVerificandoSessao] = useState(true)
-  const [telaAuth, setTelaAuth] = useState<'login' | 'cadastro'>('login')
+  const [telaAuth, setTelaAuth] = useState<TelaAuth>('inicio')
+  const [recuperandoSenha, setRecuperandoSenha] = useState(false)
+  const [contaFoiExcluida, setContaFoiExcluida] = useState(false)
+  const [termoPendente, setTermoPendente] = useState<string | null>(null)
+  const [aceitandoTermo, setAceitandoTermo] = useState(false)
+  const [erroTermo, setErroTermo] = useState('')
 
   const [focos, setFocos] = useState<FocoComProgresso[]>([])
   const [carregandoFocos, setCarregandoFocos] = useState(false)
-  const [telaAtual, setTelaAtual] = useState<'lista' | 'novoFoco' | 'preparacao' | 'estatisticas'>('lista')
+  const [telaAtual, setTelaAtual] = useState<TelaAtual>('lista')
   const [focoSelecionado, setFocoSelecionado] = useState<FocoComProgresso | null>(null)
   const [sidebarAberta, setSidebarAberta] = useState(false)
   const [emAndamento, setEmAndamento] = useState<SessaoEmAndamento | null>(() => handleRestaurarSessao())
@@ -35,6 +55,7 @@ function App() {
   const [sessaoConcluida, setSessaoConcluida] = useState<SessaoConcluida | null>(null)
 
   const [papel, setPapel] = useState<string | null>(null)
+  const [nomeUsuario, setNomeUsuario] = useState('')
 
   usePersistirSessao(emAndamento)
 
@@ -48,6 +69,11 @@ function App() {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setLogado(!!session)
       setUserId(session?.user.id ?? null)
+      if (!session) {
+        setPapel(null)
+        setNomeUsuario('')
+        setTermoPendente(null)
+      }
     })
 
     return () => {
@@ -58,9 +84,26 @@ function App() {
   useEffect(() => {
     if (logado && userId) {
       carregarFocos(userId)
-      getPapelUsuario(userId).then(setPapel)
+      handleCarregarPerfil(userId).then((perfil) => {
+        setPapel(perfil?.papel ?? null)
+        setNomeUsuario(perfil?.nome ?? '')
+      })
+      handleVerificarTermo().then(setTermoPendente)
     }
   }, [logado, userId])
+
+  async function aceitarTermoPendente() {
+    if (aceitandoTermo) return
+    setAceitandoTermo(true)
+    setErroTermo('')
+    const resultado = await handleAceitarTermo()
+    setAceitandoTermo(false)
+    if (resultado.sucesso) {
+      setTermoPendente(null)
+      return
+    }
+    setErroTermo(resultado.mensagem)
+  }
 
   async function carregarFocos(uid: string) {
     setCarregandoFocos(true)
@@ -73,7 +116,22 @@ function App() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    setSidebarAberta(false)
     setTelaAtual('lista')
+    setTelaAuth('inicio')
+  }
+
+  function navegar(destino: DestinoMenu) {
+    setSidebarAberta(false)
+    setSessaoConcluida(null)
+    setTelaAtual(destino)
+  }
+
+  function contaExcluida() {
+    setContaFoiExcluida(true)
+    setTelaAtual('lista')
+    setTelaAuth('inicio')
+    setFocos([])
   }
 
   function encerrarSessao() {
@@ -89,12 +147,6 @@ function App() {
     setTelaAtual('estatisticas')
   }
 
-  function abrirEstatisticas() {
-    setSidebarAberta(false)
-    setSessaoConcluida(null)
-    setTelaAtual('estatisticas')
-  }
-
   function voltarParaLista() {
     setSessaoConcluida(null)
     setTelaAtual('lista')
@@ -104,7 +156,39 @@ function App() {
     return <p style={{ padding: '2rem' }}>Carregando...</p>
   }
 
+  if (recuperandoSenha) {
+    return (
+      <RecuperarSenha
+        onConcluir={() => {
+          setRecuperandoSenha(false)
+          setTelaAuth('inicio')
+          setTelaAtual('lista')
+        }}
+        onVoltar={() => {
+          supabase.auth.signOut({ scope: 'local' })
+          setRecuperandoSenha(false)
+          setTelaAuth('login')
+        }}
+      />
+    )
+  }
+
   if (!logado) {
+    if (contaFoiExcluida) {
+      return (
+        <ContaExcluida
+          onIrParaInicio={() => {
+            setContaFoiExcluida(false)
+            setTelaAuth('inicio')
+          }}
+        />
+      )
+    }
+
+    if (telaAuth === 'inicio') {
+      return <PaginaInicial onEntrar={() => setTelaAuth('login')} onCriarConta={() => setTelaAuth('cadastro')} />
+    }
+
     if (telaAuth === 'cadastro') {
       return (
         <Cadastro
@@ -114,10 +198,36 @@ function App() {
       )
     }
 
+    if (telaAuth === 'chamadoSemLogin') {
+      return (
+        <ChamadoSemLogin
+          onVoltar={() => setTelaAuth('login')}
+          onRecuperarSenha={() => setRecuperandoSenha(true)}
+        />
+      )
+    }
+
     return (
       <Login
         onLoginSuccess={() => setLogado(true)}
         onIrParaCadastro={() => setTelaAuth('cadastro')}
+        onRecuperarSenha={() => setRecuperandoSenha(true)}
+        onNaoConsigoAcessar={() => setTelaAuth('chamadoSemLogin')}
+        onVoltarInicio={() => setTelaAuth('inicio')}
+      />
+    )
+  }
+
+  if (termoPendente) {
+    return (
+      <TermosModal
+        aberto
+        aviso={avisoDeNovaVersao(termoPendente)}
+        rotuloFechar="Sair"
+        erro={erroTermo}
+        aceitando={aceitandoTermo}
+        onAceitar={aceitarTermoPendente}
+        onFechar={handleLogout}
       />
     )
   }
@@ -155,8 +265,48 @@ function App() {
     )
   }
 
-  if (papel === 'admin') {
-    return <PainelAdmin onLogout={handleLogout} />
+  if (papel === 'admin' && userId) {
+    return (
+      <Suspense fallback={<p style={{ padding: '2rem' }}>Carregando o painel...</p>}>
+        <PainelAdmin adminId={userId} onLogout={handleLogout} />
+      </Suspense>
+    )
+  }
+
+  if (telaAtual === 'conta' && userId) {
+    return (
+      <Suspense fallback={<p style={{ padding: '2rem' }}>Carregando sua conta...</p>}>
+        <MinhaConta
+          userId={userId}
+          onVoltar={voltarParaLista}
+          onNomeAlterado={setNomeUsuario}
+          onContaExcluida={contaExcluida}
+        />
+      </Suspense>
+    )
+  }
+
+  if (telaAtual === 'suporte' && userId) {
+    return (
+      <Suspense fallback={<p style={{ padding: '2rem' }}>Carregando o suporte...</p>}>
+        <TelaSuporte userId={userId} onVoltar={voltarParaLista} />
+      </Suspense>
+    )
+  }
+
+  if (telaAtual === 'sobre') {
+    return (
+      <main className="tela">
+        <div className="tela__topo">
+          <h1 className="tela__titulo">F.O.C.O.</h1>
+          <button type="button" className="btn btn-outline-light" onClick={voltarParaLista}>
+            Voltar
+          </button>
+        </div>
+        <SobreNos />
+        <BotaoSuporte onAbrir={() => navegar('suporte')} />
+      </main>
+    )
   }
 
   if (telaAtual === 'preparacao' && focoSelecionado && userId) {
@@ -196,6 +346,7 @@ function App() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <button
           onClick={() => setSidebarAberta(true)}
+          aria-label="Abrir o menu"
           style={{ background: 'none', border: '1px solid #444', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem' }}
         >
           👤
@@ -210,8 +361,10 @@ function App() {
 
       <Sidebar
         aberta={sidebarAberta}
+        nomeUsuario={nomeUsuario}
+        telaAtual={telaAtual}
         onFechar={() => setSidebarAberta(false)}
-        onAbrirEstatisticas={abrirEstatisticas}
+        onNavegar={navegar}
         onLogout={handleLogout}
       />
 
@@ -237,6 +390,8 @@ function App() {
           }}
         />
       )}
+
+      {telaAtual === 'lista' && <BotaoSuporte onAbrir={() => navegar('suporte')} />}
     </div>
   )
 }

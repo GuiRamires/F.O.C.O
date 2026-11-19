@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient'
 import { validarSenha } from './services/validarSenha'
 import BarraForcaSenha from './BarraForcaSenha'
 import TermosModal from './TermosModal'
+import { VERSAO_DO_TERMO } from './services/termoService'
 import { registrarLog } from './services/logService'
 
 interface CadastroProps {
@@ -70,6 +71,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
       options: {
         data: {
           nome: nomeLimpo,
+          termo_versao: VERSAO_DO_TERMO,
         },
       },
     })
@@ -93,9 +95,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
     }
 
     supabase.functions
-      .invoke('enviar-email-cadastro', {
-        body: { email: emailLimpo, nome: nomeLimpo },
-      })
+      .invoke('enviar-email-cadastro')
       .catch((err) => {
         console.error('Erro ao enviar e-mail de boas-vindas:', err)
       })
@@ -117,6 +117,7 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
           <input
             id="cadastro-nome"
             type="text"
+            maxLength={80}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             style={{ width: '100%', padding: '0.5rem' }}

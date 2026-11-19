@@ -27,6 +27,7 @@ import ModalFocoResgatado from './ModalFocoResgatado'
 import ModalExcluirFoco from './ModalExcluirFoco'
 import ModalMudarPosicao from './ModalMudarPosicao'
 import ModalEditarFoco from './ModalEditarFoco'
+import { textoDoAviso } from './services/inatividadeService'
 import './styles/laboratorio.css'
 import './styles/pilha.css'
 
@@ -360,6 +361,11 @@ function CardFoco({
         )}
         {foco.aguardandoPratica && (
           <span className="card-foco__selo">Recém-resgatado: pratique para liberar</span>
+        )}
+        {!noLaboratorio && foco.inatividade?.emAviso && (
+          <span className="card-foco__selo card-foco__selo--inatividade" role="status">
+            {textoDoAviso(foco.inatividade)}
+          </span>
         )}
       </div>
 
