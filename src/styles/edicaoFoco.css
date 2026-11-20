@@ -21,22 +21,27 @@
 
 .edicao-modal__rotulo {
   padding: 0;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .edicao-modal__campo {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #444;
-  border-radius: 12px;
-  background: transparent;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #000000;
   color: var(--cor-texto);
   font: inherit;
+  transition:
+    border-color var(--dur-fast),
+    box-shadow var(--dur-fast);
 }
 
 .edicao-modal__campo:focus {
   outline: none;
   border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 4px rgba(77, 141, 255, 0.18);
 }
 
 .edicao-modal__campo option {

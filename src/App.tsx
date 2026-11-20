@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useEffect } from 'react'
+import { lazy, Suspense, useState, useEffect, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { supabase } from './supabaseClient'
 import Login from './Login'
 import Cadastro from './Cadastro'
@@ -11,10 +12,10 @@ import Sidebar, { type DestinoMenu } from './Sidebar'
 import { handleCarregarPerfil } from './controllers/contaController'
 import { handleAceitarTermo, handleVerificarTermo } from './controllers/termoController'
 import { avisoDeNovaVersao } from './services/termoService'
-import PaginaInicial from './PaginaInicial'
+import LayoutPublico from './landing/LayoutPublico'
+import type { PaginaPublica } from './conteudo/site'
 import RecuperarSenha from './RecuperarSenha'
 import ChamadoSemLogin from './ChamadoSemLogin'
-import SobreNos from './SobreNos'
 import ContaExcluida from './ContaExcluida'
 import TermosModal from './TermosModal'
 import BotaoSuporte from './BotaoSuporte'
@@ -30,6 +31,8 @@ const TelaEstatisticas = lazy(() => import('./TelaEstatisticas'))
 const PainelAdmin = lazy(() => import('./PainelAdmin'))
 const MinhaConta = lazy(() => import('./MinhaConta'))
 const TelaSuporte = lazy(() => import('./TelaSuporte'))
+const SitePublico = lazy(() => import('./landing/SitePublico'))
+const Sobre = lazy(() => import('./landing/paginas/Sobre'))
 
 type TelaAuth = 'inicio' | 'login' | 'cadastro' | 'chamadoSemLogin'
 type TelaAtual = 'lista' | 'novoFoco' | 'preparacao' | 'estatisticas' | 'conta' | 'suporte' | 'sobre'
@@ -39,6 +42,7 @@ function App() {
   const [userId, setUserId] = useState<string | null>(null)
   const [verificandoSessao, setVerificandoSessao] = useState(true)
   const [telaAuth, setTelaAuth] = useState<TelaAuth>('inicio')
+  const [paginaPublica, setPaginaPublica] = useState<PaginaPublica>('inicio')
   const [recuperandoSenha, setRecuperandoSenha] = useState(false)
   const [contaFoiExcluida, setContaFoiExcluida] = useState(false)
   const [termoPendente, setTermoPendente] = useState<string | null>(null)
@@ -152,12 +156,33 @@ function App() {
     setTelaAtual('lista')
   }
 
+  function abrirPaginaPublica(pagina: PaginaPublica) {
+    setPaginaPublica(pagina)
+    setTelaAuth('inicio')
+  }
+
+  function noSitePublico(chave: string, conteudo: ReactNode, semNavegacao = false) {
+    return (
+      <LayoutPublico
+        chave={chave}
+        paginaAtual={telaAuth === 'inicio' ? paginaPublica : null}
+        semNavegacao={semNavegacao}
+        onNavegar={abrirPaginaPublica}
+        onEntrar={() => setTelaAuth('login')}
+        onCriarConta={() => setTelaAuth('cadastro')}
+      >
+        {conteudo}
+      </LayoutPublico>
+    )
+  }
+
   if (verificandoSessao) {
     return <p style={{ padding: '2rem' }}>Carregando...</p>
   }
 
   if (recuperandoSenha) {
-    return (
+    return noSitePublico(
+      'recuperar-senha',
       <RecuperarSenha
         onConcluir={() => {
           setRecuperandoSenha(false)
@@ -169,52 +194,68 @@ function App() {
           setRecuperandoSenha(false)
           setTelaAuth('login')
         }}
-      />
+      />,
+      true,
     )
   }
 
   if (!logado) {
     if (contaFoiExcluida) {
-      return (
+      return noSitePublico(
+        'conta-excluida',
         <ContaExcluida
           onIrParaInicio={() => {
             setContaFoiExcluida(false)
-            setTelaAuth('inicio')
+            abrirPaginaPublica('inicio')
           }}
-        />
+        />,
       )
     }
 
     if (telaAuth === 'inicio') {
-      return <PaginaInicial onEntrar={() => setTelaAuth('login')} onCriarConta={() => setTelaAuth('cadastro')} />
+      return noSitePublico(
+        paginaPublica,
+        <Suspense fallback={<div className="foco-carregando" />}>
+          <SitePublico
+            pagina={paginaPublica}
+            onNavegar={abrirPaginaPublica}
+            onEntrar={() => setTelaAuth('login')}
+            onCriarConta={() => setTelaAuth('cadastro')}
+          />
+        </Suspense>,
+      )
     }
 
     if (telaAuth === 'cadastro') {
-      return (
+      return noSitePublico(
+        'cadastro',
         <Cadastro
           onCadastroSuccess={() => setLogado(true)}
           onVoltarParaLogin={() => setTelaAuth('login')}
-        />
+          onVoltarInicio={() => abrirPaginaPublica('inicio')}
+        />,
       )
     }
 
     if (telaAuth === 'chamadoSemLogin') {
-      return (
+      return noSitePublico(
+        'chamado-sem-login',
         <ChamadoSemLogin
           onVoltar={() => setTelaAuth('login')}
           onRecuperarSenha={() => setRecuperandoSenha(true)}
-        />
+        />,
       )
     }
 
-    return (
+    return noSitePublico(
+      'login',
       <Login
         onLoginSuccess={() => setLogado(true)}
         onIrParaCadastro={() => setTelaAuth('cadastro')}
         onRecuperarSenha={() => setRecuperandoSenha(true)}
         onNaoConsigoAcessar={() => setTelaAuth('chamadoSemLogin')}
-        onVoltarInicio={() => setTelaAuth('inicio')}
-      />
+        onVoltarInicio={() => abrirPaginaPublica('inicio')}
+      />,
     )
   }
 
@@ -296,14 +337,16 @@ function App() {
 
   if (telaAtual === 'sobre') {
     return (
-      <main className="tela">
-        <div className="tela__topo">
-          <h1 className="tela__titulo">F.O.C.O.</h1>
-          <button type="button" className="btn btn-outline-light" onClick={voltarParaLista}>
-            Voltar
+      <main className="foco-pagina-interna">
+        <div className="foco-container foco-pagina-interna__topo">
+          <button type="button" className="btn btn-outline-light btn-sm" onClick={voltarParaLista}>
+            ← Voltar
           </button>
+          <span className="foco-pagina-interna__marca">F.O.C.O.</span>
         </div>
-        <SobreNos />
+        <Suspense fallback={<p className="foco-container">Carregando...</p>}>
+          <Sobre avisoDoPrototipo />
+        </Suspense>
         <BotaoSuporte onAbrir={() => navegar('suporte')} />
       </main>
     )
@@ -342,22 +385,30 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+    <div className="foco-area">
+      <header className="foco-topo-app">
         <button
+          type="button"
+          className="foco-topo-app__botao foco-topo-app__botao--perfil"
           onClick={() => setSidebarAberta(true)}
           aria-label="Abrir o menu"
-          style={{ background: 'none', border: '1px solid #444', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem' }}
         >
-          👤
+          <img src="/icone-perfil.png" alt="" />
         </button>
-        <h1 style={{ fontSize: '1.5rem' }}>F.O.C.O.</h1>
-        {telaAtual === 'lista' && (
-          <button className="btn btn-primary" onClick={() => setTelaAtual('novoFoco')}>
+        <h1 className="foco-topo-app__titulo">F.O.C.O.</h1>
+        {telaAtual === 'lista' ? (
+          <button
+            type="button"
+            className="foco-topo-app__botao foco-topo-app__botao--novo"
+            onClick={() => setTelaAtual('novoFoco')}
+            aria-label="Novo Foco"
+          >
             +
           </button>
+        ) : (
+          <span />
         )}
-      </div>
+      </header>
 
       <Sidebar
         aberta={sidebarAberta}
@@ -370,30 +421,45 @@ function App() {
 
       {carregandoFocos ? (
         <p>Carregando seus Focos...</p>
-      ) : telaAtual === 'novoFoco' ? (
-        <NovoFoco
-          userId={userId!}
-          onFocoCriado={() => {
-            setTelaAtual('lista')
-            carregarFocos(userId!)
-          }}
-          onCancelar={() => setTelaAtual('lista')}
-        />
       ) : (
-        <ListaFocos
-          focos={focos}
-          userId={userId!}
-          onFocoAtualizado={() => carregarFocos(userId!)}
-          onConcentrar={(foco) => {
-            setFocoSelecionado(foco)
-            setTelaAtual('preparacao')
-          }}
-        />
+        <AnimatePresence mode="wait" initial={false}>
+          {telaAtual === 'novoFoco' ? (
+            <motion.div key="novoFoco" {...TRANSICAO_DA_AREA}>
+              <NovoFoco
+                userId={userId!}
+                onFocoCriado={() => {
+                  setTelaAtual('lista')
+                  carregarFocos(userId!)
+                }}
+                onCancelar={() => setTelaAtual('lista')}
+              />
+            </motion.div>
+          ) : (
+            <motion.div key="lista" {...TRANSICAO_DA_AREA}>
+              <ListaFocos
+                focos={focos}
+                userId={userId!}
+                onFocoAtualizado={() => carregarFocos(userId!)}
+                onConcentrar={(foco) => {
+                  setFocoSelecionado(foco)
+                  setTelaAtual('preparacao')
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
 
       {telaAtual === 'lista' && <BotaoSuporte onAbrir={() => navegar('suporte')} />}
     </div>
   )
+}
+
+const TRANSICAO_DA_AREA = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 24 },
+  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
 }
 
 export default App

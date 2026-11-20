@@ -91,6 +91,7 @@
 .preparacao__tempo {
   grid-row: 2;
   position: relative;
+  font-family: var(--fonte-numeros);
   font-size: min(4rem, 11cqi);
   line-height: 1;
 }

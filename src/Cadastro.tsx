@@ -1,21 +1,25 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { supabase } from './supabaseClient'
 import { validarSenha } from './services/validarSenha'
 import BarraForcaSenha from './BarraForcaSenha'
 import TermosModal from './TermosModal'
 import { VERSAO_DO_TERMO } from './services/termoService'
 import { registrarLog } from './services/logService'
+import CartaoAcesso from './components/CartaoAcesso'
+import CampoSenha from './components/CampoSenha'
 
 interface CadastroProps {
   onCadastroSuccess: () => void
   onVoltarParaLogin: () => void
+  onVoltarInicio?: () => void
 }
 
 const MENSAGEM_CADASTRO_RECUSADO =
   'Não foi possível concluir o cadastro com esses dados. Se você já tem uma conta, faça login.'
 const MENSAGEM_ERRO_INESPERADO = 'Não foi possível concluir o cadastro agora. Tente novamente em alguns minutos.'
 
-function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
+function Cadastro({ onCadastroSuccess, onVoltarParaLogin, onVoltarInicio }: CadastroProps) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [confirmarEmail, setConfirmarEmail] = useState('')
@@ -108,97 +112,73 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '400px', margin: '0 auto' }}>
-      <h1>F.O.C.O. — Criar Conta</h1>
-      <form onSubmit={handleCadastro}>
-        <div style={{ marginBottom: '1rem' }}>
+    <CartaoAcesso titulo="Criar conta" subtitulo="Leva menos de um minuto. Depois é só escolher o seu primeiro Foco.">
+      <form className="foco-acesso__formulario" onSubmit={handleCadastro}>
+        <div className="campo">
           <label htmlFor="cadastro-nome">Nome</label>
-          <br />
           <input
             id="cadastro-nome"
             type="text"
+            autoComplete="name"
             maxLength={80}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="cadastro-email">Email</label>
-          <br />
+        <div className="campo">
+          <label htmlFor="cadastro-email">E-mail</label>
           <input
             id="cadastro-email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="cadastro-confirmar-email">Confirmar Email</label>
-          <br />
+        <div className="campo">
+          <label htmlFor="cadastro-confirmar-email">Confirmar e-mail</label>
           <input
             id="cadastro-confirmar-email"
             type="email"
+            autoComplete="email"
             value={confirmarEmail}
             onChange={(e) => setConfirmarEmail(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="campo">
           <label htmlFor="cadastro-senha">Senha</label>
-          <br />
-          <div style={{ position: 'relative' }}>
-            <input
-              id="cadastro-senha"
-              type={mostrarSenha ? 'text' : 'password'}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem' }}
-            />
-            <button
-              type="button"
-              onClick={() => setMostrarSenha(!mostrarSenha)}
-              aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-              title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-              style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                padding: 0,
-              }}
-            >
-              👁
-            </button>
-          </div>
-          <BarraForcaSenha senha={senha} nome={nome} email={email} />
-          <small style={{ color: '#aaa' }}>
+          <CampoSenha
+            id="cadastro-senha"
+            valor={senha}
+            onAlterar={setSenha}
+            mostrar={mostrarSenha}
+            onAlternar={() => setMostrarSenha(!mostrarSenha)}
+            autoComplete="new-password"
+            descritoPor="cadastro-senha-dica cadastro-senha-requisitos"
+          />
+          <small id="cadastro-senha-dica" className="foco-dica">
             8 a 20 caracteres, com letra maiúscula, letra minúscula e número, sem sequências (como 1234) e sem o seu
             nome ou e-mail.
           </small>
+          <BarraForcaSenha senha={senha} nome={nome} email={email} id="cadastro-senha-requisitos" />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="cadastro-confirmar-senha">Confirmar Senha</label>
-          <br />
-          <input
+        <div className="campo">
+          <label htmlFor="cadastro-confirmar-senha">Confirmar senha</label>
+          <CampoSenha
             id="cadastro-confirmar-senha"
-            type={mostrarSenha ? 'text' : 'password'}
-            value={confirmarSenha}
-            onChange={(e) => setConfirmarSenha(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem' }}
+            valor={confirmarSenha}
+            onAlterar={setConfirmarSenha}
+            mostrar={mostrarSenha}
+            onAlternar={() => setMostrarSenha(!mostrarSenha)}
+            autoComplete="new-password"
           />
         </div>
 
-        <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="foco-aceite">
           <input
             type="checkbox"
             id="aceite-termos"
@@ -211,20 +191,9 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
               }
             }}
           />
-          <label htmlFor="aceite-termos" style={{ margin: 0, cursor: 'pointer' }}>
+          <label htmlFor="aceite-termos">
             Li e aceito os{' '}
-            <button
-              type="button"
-              onClick={() => setModalTermosAberto(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#4dabf7',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                padding: 0,
-              }}
-            >
+            <button type="button" className="link-texto" onClick={() => setModalTermosAberto(true)}>
               Termos de Uso e Política de Privacidade
             </button>
           </label>
@@ -239,30 +208,39 @@ function Cadastro({ onCadastroSuccess, onVoltarParaLogin }: CadastroProps) {
           onFechar={() => setModalTermosAberto(false)}
         />
 
-        {erros.length > 0 && (
-          <div className="alert alert-secondary" role="alert">
-            <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+        <AnimatePresence>
+          {erros.length > 0 && (
+            <motion.ul
+              className="foco-erros"
+              role="alert"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
               {erros.map((err, i) => (
                 <li key={i}>{err}</li>
               ))}
-            </ul>
-          </div>
-        )}
+            </motion.ul>
+          )}
+        </AnimatePresence>
 
-        <button type="submit" disabled={carregando}>
-          {carregando ? 'Criando conta...' : 'Criar Conta'}
+        <button type="submit" className="btn btn-primary foco-acesso__enviar" disabled={carregando}>
+          {carregando ? 'Criando conta...' : 'Criar conta'}
         </button>
+
+        <p className="foco-acesso__troca">
+          Já tem conta?{' '}
+          <button type="button" className="link-texto" onClick={onVoltarParaLogin}>
+            Entrar
+          </button>
+        </p>
+        {onVoltarInicio && (
+          <button type="button" className="foco-acesso__voltar" onClick={onVoltarInicio}>
+            ← Voltar à página inicial
+          </button>
+        )}
       </form>
-      <p style={{ marginTop: '1rem' }}>
-        Já tem conta?{' '}
-        <button
-          onClick={onVoltarParaLogin}
-          style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline' }}
-        >
-          Entrar
-        </button>
-      </p>
-    </div>
+    </CartaoAcesso>
   )
 }
 
