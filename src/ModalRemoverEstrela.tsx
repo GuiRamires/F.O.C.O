@@ -7,7 +7,7 @@ import {
 } from './services/estrelaService'
 import './styles/timer.css'
 
-const COR_ESTRELA = '#ffc107'
+const COR_ESTRELA = 'var(--gold)'
 
 interface ModalRemoverEstrelaProps {
   tituloFoco: string

@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { supabase } from './supabaseClient'
 import { registrarLog } from './services/logService'
+import CartaoAcesso from './components/CartaoAcesso'
+import CampoSenha from './components/CampoSenha'
 
 interface LoginProps {
   onLoginSuccess: () => void
@@ -66,81 +69,71 @@ function Login({ onLoginSuccess, onIrParaCadastro, onRecuperarSenha, onNaoConsig
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '400px', margin: '0 auto' }}>
-      <h1>F.O.C.O. — Login</h1>
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label>Email</label><br />
+    <CartaoAcesso titulo="Entrar" subtitulo="Bom te ver de novo. Continue de onde parou.">
+      <form className="foco-acesso__formulario" onSubmit={handleLogin}>
+        <div className="campo">
+          <label htmlFor="login-email">E-mail</label>
           <input
+            id="login-email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem' }}
           />
         </div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label>Senha</label><br />
-          <div style={{ position: 'relative' }}>
-            <input
-              type={mostrarSenha ? 'text' : 'password'}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem' }}
-            />
-            <button
-              type="button"
-              onClick={() => setMostrarSenha(!mostrarSenha)}
-              style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                padding: 0,
-              }}
-            >
-              {mostrarSenha ? '👁' : '👁'}
-            </button>
-          </div>
+
+        <div className="campo">
+          <label htmlFor="login-senha">Senha</label>
+          <CampoSenha
+            id="login-senha"
+            valor={senha}
+            onAlterar={setSenha}
+            mostrar={mostrarSenha}
+            onAlternar={() => setMostrarSenha(!mostrarSenha)}
+            autoComplete="current-password"
+          />
         </div>
 
-        {erros.length > 0 && (
-          <div className="alert alert-secondary" role="alert">
-            <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+        <AnimatePresence>
+          {erros.length > 0 && (
+            <motion.ul
+              className="foco-erros"
+              role="alert"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
               {erros.map((err, i) => (
                 <li key={i}>{err}</li>
               ))}
-            </ul>
-          </div>
-        )}
+            </motion.ul>
+          )}
+        </AnimatePresence>
 
-        <button type="submit" disabled={carregando}>
+        <button type="submit" className="btn btn-primary foco-acesso__enviar" disabled={carregando}>
           {carregando ? 'Entrando...' : 'Entrar'}
         </button>
+
+        <div className="foco-acesso__links">
+          <button type="button" className="link-texto" onClick={onRecuperarSenha}>
+            Esqueci minha senha
+          </button>
+          <button type="button" className="link-texto" onClick={onNaoConsigoAcessar}>
+            Não consigo acessar minha conta
+          </button>
+        </div>
+
+        <p className="foco-acesso__troca">
+          Não tem conta?{' '}
+          <button type="button" className="link-texto" onClick={onIrParaCadastro}>
+            Cadastre-se
+          </button>
+        </p>
+        <button type="button" className="foco-acesso__voltar" onClick={onVoltarInicio}>
+          ← Voltar à página inicial
+        </button>
       </form>
-      <p style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
-        <button type="button" className="link-texto" onClick={onRecuperarSenha}>
-          Esqueci minha senha
-        </button>
-        <button type="button" className="link-texto" onClick={onNaoConsigoAcessar}>
-          Não consigo acessar minha conta
-        </button>
-      </p>
-      <p style={{ marginTop: '1rem' }}>
-        Não tem conta?{' '}
-        <button onClick={onIrParaCadastro} style={{ background: 'none', border: 'none', color: '#4dabf7', cursor: 'pointer', textDecoration: 'underline' }}>
-          Cadastre-se
-        </button>
-      </p>
-      <p>
-        <button type="button" className="link-texto" onClick={onVoltarInicio}>
-          Voltar à página inicial
-        </button>
-      </p>
-    </div>
+    </CartaoAcesso>
   )
 }
 

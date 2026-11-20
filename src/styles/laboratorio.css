@@ -15,14 +15,20 @@
 
 .laboratorio-modal__botao {
   width: 100%;
-  padding: 0.6rem 1.25rem;
+  padding: 12px 20px;
   border: none;
   border-radius: 999px;
   background: var(--cor-laboratorio-botao);
-  color: var(--cor-texto);
+  color: #ffffff;
   font: inherit;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.laboratorio-modal__botao:active {
+  transform: scale(0.96);
 }
 
 .laboratorio-modal__botao:hover,
@@ -41,8 +47,8 @@
 }
 
 .laboratorio-modal__nota {
-  font-size: 0.9rem;
-  opacity: 0.75;
+  font-size: 0.85rem;
+  color: var(--muted-forte);
 }
 
 .card-foco__selo {

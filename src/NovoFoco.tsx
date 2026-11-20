@@ -9,8 +9,6 @@ import {
   validarTextosDoFoco,
 } from './services/textoFoco'
 
-const ESTILO_CONTADOR = { display: 'block', textAlign: 'right', fontSize: '0.8rem', opacity: 0.7 } as const
-
 interface NovoFocoProps {
   userId: string
   onFocoCriado: () => void
@@ -52,76 +50,64 @@ function NovoFoco({ userId, onFocoCriado, onCancelar }: NovoFocoProps) {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '500px', margin: '0 auto' }}>
-      <div
-        style={{
-          border: '1px solid #333',
-          borderRadius: '12px',
-          padding: '2rem',
-        }}
-      >
-        <h2 style={{ marginBottom: '1.5rem' }}>Crie seu Próximo F.O.C.O</h2>
+    <section className="foco-cartao">
+      <h2 className="foco-cartao__titulo">Crie seu Próximo F.O.C.O</h2>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label>Nome do F.O.C.O</label><br />
-            <input
-              type="text"
-              value={titulo}
-              onChange={(e) => setTitulo(mascararTitulo(e.target.value))}
-              style={{ width: '100%', padding: '0.5rem' }}
-              placeholder="Ex: TCC - Projeto WEB"
-            />
-            <small style={ESTILO_CONTADOR}>
-              Letras, números, espaços e hífen · {titulo.length}/{LIMITE_TITULO}
-            </small>
+      <form className="foco-cartao__formulario" onSubmit={handleSubmit}>
+        <div className="campo">
+          <label htmlFor="novo-foco-titulo">Nome do F.O.C.O</label>
+          <input
+            id="novo-foco-titulo"
+            type="text"
+            value={titulo}
+            onChange={(e) => setTitulo(mascararTitulo(e.target.value))}
+            placeholder="Ex: TCC - Projeto WEB"
+          />
+          <small className="campo__contador">
+            Letras, números, espaços e hífen · {titulo.length}/{LIMITE_TITULO}
+          </small>
+        </div>
+
+        <div className="campo">
+          <label htmlFor="novo-foco-meta">Tempo que Pretende Finalizar</label>
+          <select id="novo-foco-meta" value={metaHoras} onChange={(e) => setMetaHoras(Number(e.target.value))}>
+            {OPCOES_META.map((opcao) => (
+              <option key={opcao.horas} value={opcao.horas}>
+                {opcao.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="campo">
+          <label htmlFor="novo-foco-observacoes">Observações</label>
+          <textarea
+            id="novo-foco-observacoes"
+            value={observacoes}
+            onChange={(e) => setObservacoes(mascararObservacoes(e.target.value))}
+            placeholder="Ex: Criar projeto Web com métricas aprendidas em Aula"
+          />
+          <small className="campo__contador">
+            {observacoes.length}/{LIMITE_OBSERVACOES}
+          </small>
+        </div>
+
+        {erro && (
+          <div className="alert alert-secondary" role="alert">
+            {erro}
           </div>
+        )}
 
-          <div style={{ marginBottom: '1rem' }}>
-            <label>Tempo que Pretende Finalizar</label><br />
-            <select
-              value={metaHoras}
-              onChange={(e) => setMetaHoras(Number(e.target.value))}
-              style={{ width: '100%', padding: '0.5rem' }}
-            >
-              {OPCOES_META.map((opcao) => (
-                <option key={opcao.horas} value={opcao.horas}>
-                  {opcao.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label>Observações</label><br />
-            <textarea
-              value={observacoes}
-              onChange={(e) => setObservacoes(mascararObservacoes(e.target.value))}
-              style={{ width: '100%', padding: '0.5rem', minHeight: '80px' }}
-              placeholder="Ex: Criar projeto Web com métricas aprendidas em Aula"
-            />
-            <small style={ESTILO_CONTADOR}>
-              {observacoes.length}/{LIMITE_OBSERVACOES}
-            </small>
-          </div>
-
-          {erro && (
-            <div className="alert alert-secondary" role="alert">
-              {erro}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="submit" className="btn btn-primary" disabled={carregando}>
-              {carregando ? 'Criando...' : 'CRIAR'}
-            </button>
-            <button type="button" className="btn btn-outline-light" onClick={onCancelar}>
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="grupo-botoes">
+          <button type="submit" className="btn btn-primary" disabled={carregando}>
+            {carregando ? 'Criando...' : 'CRIAR'}
+          </button>
+          <button type="button" className="btn btn-outline-light" onClick={onCancelar}>
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </section>
   )
 }
 
