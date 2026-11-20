@@ -74,6 +74,7 @@
 }
 
 html {
+  background-color: var(--bg);
   scroll-behavior: smooth;
 }
 

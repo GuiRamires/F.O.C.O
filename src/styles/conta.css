@@ -30,68 +30,9 @@
   margin: 0 0 0.75rem;
 }
 
-.secao__dica {
-  color: #c8c8c8;
-  font-size: 0.9rem;
-}
-
-.campo {
-  margin-bottom: 1rem;
-}
-
-.campo label {
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.campo input,
-.campo select,
-.campo textarea {
-  width: 100%;
-  padding: 0.5rem;
-}
-
-.campo__contador {
-  display: block;
-  text-align: right;
-  color: #c8c8c8;
-  font-size: 0.8rem;
-}
-
-.campo__contador--alerta {
-  color: #ffd166;
-}
-
 .linha-selecionada td,
 .linha-formulario td {
   background: rgba(255, 255, 255, 0.04);
-}
-
-.mensagem {
-  margin: 0.75rem 0;
-}
-
-.mensagem--erro {
-  color: var(--cor-erro);
-}
-
-.mensagem--sucesso {
-  color: var(--cor-concluido-anel);
-}
-
-.link-texto {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #4dabf7;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.grupo-botoes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .botao-suporte {

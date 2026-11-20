@@ -9,6 +9,7 @@ import '@fontsource/inter/800.css'
 import '@fontsource/aldrich'
 import './index.css'
 import './styles/tema.css'
+import './styles/componentes.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(

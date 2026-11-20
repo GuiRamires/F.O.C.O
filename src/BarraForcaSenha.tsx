@@ -1,38 +1,58 @@
-import { calcularForcaSenha } from './services/validarSenha'
+import { calcularForcaSenha, validarSenha } from './services/validarSenha'
 
 interface BarraForcaSenhaProps {
   senha: string
   nome: string
   email: string
+  id?: string
 }
 
 const CONFIG_NIVEL = {
-  fraca: { largura: 25, classe: 'bg-danger', label: 'Fraca' },
-  media: { largura: 50, classe: 'bg-warning', label: 'Média' },
-  boa: { largura: 75, classe: 'bg-primary', label: 'Boa' },
-  excelente: { largura: 100, classe: 'bg-success', label: 'Excelente' },
+  fraca: { segmentos: 1, label: 'Fraca' },
+  media: { segmentos: 2, label: 'Média' },
+  boa: { segmentos: 3, label: 'Boa' },
+  excelente: { segmentos: 4, label: 'Excelente' },
 }
 
-function BarraForcaSenha({ senha, nome, email }: BarraForcaSenhaProps) {
-  if (!senha) return null
+const REQUISITOS = [
+  { texto: '8 a 20 caracteres', erros: ['A senha deve ter entre 8 e 20 caracteres.'] },
+  { texto: 'Uma letra maiúscula', erros: ['A senha deve conter ao menos uma letra maiúscula.'] },
+  { texto: 'Uma letra minúscula', erros: ['A senha deve conter ao menos uma letra minúscula.'] },
+  { texto: 'Um número', erros: ['A senha deve conter ao menos um número.'] },
+  { texto: 'Sem sequências (como 1234)', erros: ['A senha não deve conter sequências óbvias, como 1234 ou abcd.'] },
+  {
+    texto: 'Sem o seu nome ou e-mail',
+    erros: ['A senha não deve conter seu nome.', 'A senha não deve conter parte do seu e-mail.'],
+  },
+]
 
-  const nivel = calcularForcaSenha(senha, nome, email)
-  const { largura, classe, label } = CONFIG_NIVEL[nivel]
+function BarraForcaSenha({ senha, nome, email, id }: BarraForcaSenhaProps) {
+  const { erros } = validarSenha(senha, nome, email)
+  const nivel = senha ? CONFIG_NIVEL[calcularForcaSenha(senha, nome, email)] : null
 
   return (
-    <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
-      <div className="progress" style={{ height: '8px' }}>
-        <div
-          className={`progress-bar ${classe}`}
-          role="progressbar"
-          style={{ width: `${largura}%` }}
-          aria-valuenow={largura}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        />
-      </div>
-      <small className={`text-${classe.replace('bg-', '')}`}>{label}</small>
-    </div>
+    <>
+      {nivel && (
+        <div className="foco-forca" aria-live="polite">
+          <div className="foco-forca__barra" data-nivel={nivel.segmentos}>
+            {[1, 2, 3, 4].map((segmento) => (
+              <span key={segmento} className={segmento <= nivel.segmentos ? 'foco-forca__segmento--ativo' : ''} />
+            ))}
+          </div>
+          <small>{nivel.label}</small>
+        </div>
+      )}
+      <ul id={id} className="foco-requisitos">
+        {REQUISITOS.map((requisito) => {
+          const atendido = senha.length > 0 && !requisito.erros.some((erro) => erros.includes(erro))
+          return (
+            <li key={requisito.texto} className={atendido ? 'foco-requisitos__item--ok' : ''}>
+              <span aria-hidden="true">{atendido ? '✓' : '•'}</span> {requisito.texto}
+            </li>
+          )
+        })}
+      </ul>
+    </>
   )
 }
 
