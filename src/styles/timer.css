@@ -129,6 +129,7 @@
 
 .timer__tempo {
   position: relative;
+  font-family: var(--fonte-numeros);
   font-size: min(4rem, 11cqi);
   line-height: 1;
   color: var(--cor-digito);
@@ -229,6 +230,7 @@
 
 .flutuante__tempo {
   position: relative;
+  font-family: var(--fonte-numeros);
   font-size: 15cqi;
   line-height: 1;
   color: var(--cor-digito);
