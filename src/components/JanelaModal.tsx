@@ -7,7 +7,7 @@ interface JanelaModalProps {
   aberto: boolean
   titulo: string
   onFechar?: () => void
-  largura?: 'normal' | 'larga'
+  largura?: 'normal' | 'larga' | 'video'
   children: ReactNode
 }
 

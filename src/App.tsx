@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect } from 'react'
+import { lazy, Suspense, useState, useEffect, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { supabase } from './supabaseClient'
 import Login from './Login'
@@ -12,10 +12,10 @@ import Sidebar, { type DestinoMenu } from './Sidebar'
 import { handleCarregarPerfil } from './controllers/contaController'
 import { handleAceitarTermo, handleVerificarTermo } from './controllers/termoController'
 import { avisoDeNovaVersao } from './services/termoService'
-import PaginaInicial from './PaginaInicial'
+import LayoutPublico from './landing/LayoutPublico'
+import type { PaginaPublica } from './conteudo/site'
 import RecuperarSenha from './RecuperarSenha'
 import ChamadoSemLogin from './ChamadoSemLogin'
-import SobreNos from './SobreNos'
 import ContaExcluida from './ContaExcluida'
 import TermosModal from './TermosModal'
 import BotaoSuporte from './BotaoSuporte'
@@ -31,6 +31,8 @@ const TelaEstatisticas = lazy(() => import('./TelaEstatisticas'))
 const PainelAdmin = lazy(() => import('./PainelAdmin'))
 const MinhaConta = lazy(() => import('./MinhaConta'))
 const TelaSuporte = lazy(() => import('./TelaSuporte'))
+const SitePublico = lazy(() => import('./landing/SitePublico'))
+const Sobre = lazy(() => import('./landing/paginas/Sobre'))
 
 type TelaAuth = 'inicio' | 'login' | 'cadastro' | 'chamadoSemLogin'
 type TelaAtual = 'lista' | 'novoFoco' | 'preparacao' | 'estatisticas' | 'conta' | 'suporte' | 'sobre'
@@ -40,6 +42,7 @@ function App() {
   const [userId, setUserId] = useState<string | null>(null)
   const [verificandoSessao, setVerificandoSessao] = useState(true)
   const [telaAuth, setTelaAuth] = useState<TelaAuth>('inicio')
+  const [paginaPublica, setPaginaPublica] = useState<PaginaPublica>('inicio')
   const [recuperandoSenha, setRecuperandoSenha] = useState(false)
   const [contaFoiExcluida, setContaFoiExcluida] = useState(false)
   const [termoPendente, setTermoPendente] = useState<string | null>(null)
@@ -153,12 +156,33 @@ function App() {
     setTelaAtual('lista')
   }
 
+  function abrirPaginaPublica(pagina: PaginaPublica) {
+    setPaginaPublica(pagina)
+    setTelaAuth('inicio')
+  }
+
+  function noSitePublico(chave: string, conteudo: ReactNode, semNavegacao = false) {
+    return (
+      <LayoutPublico
+        chave={chave}
+        paginaAtual={telaAuth === 'inicio' ? paginaPublica : null}
+        semNavegacao={semNavegacao}
+        onNavegar={abrirPaginaPublica}
+        onEntrar={() => setTelaAuth('login')}
+        onCriarConta={() => setTelaAuth('cadastro')}
+      >
+        {conteudo}
+      </LayoutPublico>
+    )
+  }
+
   if (verificandoSessao) {
     return <p style={{ padding: '2rem' }}>Carregando...</p>
   }
 
   if (recuperandoSenha) {
-    return (
+    return noSitePublico(
+      'recuperar-senha',
       <RecuperarSenha
         onConcluir={() => {
           setRecuperandoSenha(false)
@@ -170,52 +194,68 @@ function App() {
           setRecuperandoSenha(false)
           setTelaAuth('login')
         }}
-      />
+      />,
+      true,
     )
   }
 
   if (!logado) {
     if (contaFoiExcluida) {
-      return (
+      return noSitePublico(
+        'conta-excluida',
         <ContaExcluida
           onIrParaInicio={() => {
             setContaFoiExcluida(false)
-            setTelaAuth('inicio')
+            abrirPaginaPublica('inicio')
           }}
-        />
+        />,
       )
     }
 
     if (telaAuth === 'inicio') {
-      return <PaginaInicial onEntrar={() => setTelaAuth('login')} onCriarConta={() => setTelaAuth('cadastro')} />
+      return noSitePublico(
+        paginaPublica,
+        <Suspense fallback={<div className="foco-carregando" />}>
+          <SitePublico
+            pagina={paginaPublica}
+            onNavegar={abrirPaginaPublica}
+            onEntrar={() => setTelaAuth('login')}
+            onCriarConta={() => setTelaAuth('cadastro')}
+          />
+        </Suspense>,
+      )
     }
 
     if (telaAuth === 'cadastro') {
-      return (
+      return noSitePublico(
+        'cadastro',
         <Cadastro
           onCadastroSuccess={() => setLogado(true)}
           onVoltarParaLogin={() => setTelaAuth('login')}
-        />
+          onVoltarInicio={() => abrirPaginaPublica('inicio')}
+        />,
       )
     }
 
     if (telaAuth === 'chamadoSemLogin') {
-      return (
+      return noSitePublico(
+        'chamado-sem-login',
         <ChamadoSemLogin
           onVoltar={() => setTelaAuth('login')}
           onRecuperarSenha={() => setRecuperandoSenha(true)}
-        />
+        />,
       )
     }
 
-    return (
+    return noSitePublico(
+      'login',
       <Login
         onLoginSuccess={() => setLogado(true)}
         onIrParaCadastro={() => setTelaAuth('cadastro')}
         onRecuperarSenha={() => setRecuperandoSenha(true)}
         onNaoConsigoAcessar={() => setTelaAuth('chamadoSemLogin')}
-        onVoltarInicio={() => setTelaAuth('inicio')}
-      />
+        onVoltarInicio={() => abrirPaginaPublica('inicio')}
+      />,
     )
   }
 
@@ -297,14 +337,16 @@ function App() {
 
   if (telaAtual === 'sobre') {
     return (
-      <main className="tela">
-        <div className="tela__topo">
-          <h1 className="tela__titulo">F.O.C.O.</h1>
-          <button type="button" className="btn btn-outline-light" onClick={voltarParaLista}>
-            Voltar
+      <main className="foco-pagina-interna">
+        <div className="foco-container foco-pagina-interna__topo">
+          <button type="button" className="btn btn-outline-light btn-sm" onClick={voltarParaLista}>
+            ← Voltar
           </button>
+          <span className="foco-pagina-interna__marca">F.O.C.O.</span>
         </div>
-        <SobreNos />
+        <Suspense fallback={<p className="foco-container">Carregando...</p>}>
+          <Sobre avisoDoPrototipo />
+        </Suspense>
         <BotaoSuporte onAbrir={() => navegar('suporte')} />
       </main>
     )

@@ -134,46 +134,6 @@
   cursor: pointer;
 }
 
-.pagina-inicial {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
-}
-
-.pagina-inicial__topo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.pagina-inicial__destaque {
-  padding: 3rem 0 2rem;
-}
-
-.pagina-inicial__destaque h1 {
-  font-size: clamp(2rem, 6vw, 3.25rem);
-}
-
-.pagina-inicial__modulos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-}
-
-.modulo {
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 1.25rem;
-}
-
-.modulo__letra {
-  font-size: 2rem;
-  color: var(--cor-primaria);
-}
-
 .indicadores {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
