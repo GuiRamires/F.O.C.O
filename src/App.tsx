@@ -24,6 +24,8 @@ import TelaTimer from './TelaTimer'
 import { iniciarSessao, pausarSessao, retomarSessao, type SessaoEmAndamento } from './services/sessaoService'
 import { prepararAlerta } from './utils/alertaSonoro'
 import { usePersistirSessao } from './hooks/usePersistirSessao'
+import { useHistoricoDoNavegador } from './hooks/useHistoricoDoNavegador'
+import { chaveDaTela, estadoAoVoltar, type EstadoDaNavegacao, type TelaAtual, type TelaAuth } from './utils/navegacao'
 import type { SessaoConcluida } from './TelaEstatisticas'
 import './styles/conta.css'
 
@@ -33,9 +35,6 @@ const MinhaConta = lazy(() => import('./MinhaConta'))
 const TelaSuporte = lazy(() => import('./TelaSuporte'))
 const SitePublico = lazy(() => import('./landing/SitePublico'))
 const Sobre = lazy(() => import('./landing/paginas/Sobre'))
-
-type TelaAuth = 'inicio' | 'login' | 'cadastro' | 'chamadoSemLogin'
-type TelaAtual = 'lista' | 'novoFoco' | 'preparacao' | 'estatisticas' | 'conta' | 'suporte' | 'sobre'
 
 function App() {
   const [logado, setLogado] = useState(false)
@@ -62,6 +61,24 @@ function App() {
   const [nomeUsuario, setNomeUsuario] = useState('')
 
   usePersistirSessao(emAndamento)
+
+  const sessaoDoUsuario = emAndamento && emAndamento.usuarioId === userId ? emAndamento : null
+  const estadoDaNavegacao: EstadoDaNavegacao = {
+    logado,
+    emSessao: sessaoDoUsuario !== null,
+    recuperandoSenha,
+    contaFoiExcluida,
+    telaAuth,
+    paginaPublica,
+    telaAtual,
+    temFocoSelecionado: focoSelecionado !== null,
+  }
+
+  useHistoricoDoNavegador(
+    verificandoSessao ? null : chaveDaTela(estadoDaNavegacao),
+    logado && sidebarAberta,
+    voltarPeloNavegador,
+  )
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -154,6 +171,29 @@ function App() {
   function voltarParaLista() {
     setSessaoConcluida(null)
     setTelaAtual('lista')
+  }
+
+  function voltarPeloNavegador(destino: string | null): string | null {
+    if (sidebarAberta) {
+      setSidebarAberta(false)
+      return chaveDaTela(estadoDaNavegacao)
+    }
+
+    const novo = estadoAoVoltar(destino, estadoDaNavegacao)
+    if (!novo) return null
+
+    if (recuperandoSenha && !novo.recuperandoSenha) {
+      supabase.auth.signOut({ scope: 'local' })
+    }
+    if (logado && !novo.logado) setLogado(false)
+
+    setRecuperandoSenha(novo.recuperandoSenha)
+    setContaFoiExcluida(novo.contaFoiExcluida)
+    setTelaAuth(novo.telaAuth)
+    setPaginaPublica(novo.paginaPublica)
+    setTelaAtual(novo.telaAtual)
+    setSessaoConcluida(null)
+    return chaveDaTela(novo)
   }
 
   function abrirPaginaPublica(pagina: PaginaPublica) {
@@ -272,8 +312,6 @@ function App() {
       />
     )
   }
-
-  const sessaoDoUsuario = emAndamento && emAndamento.usuarioId === userId ? emAndamento : null
 
   if (sessaoDoUsuario) {
     return (
