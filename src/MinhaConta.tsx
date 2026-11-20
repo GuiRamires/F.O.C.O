@@ -232,11 +232,11 @@ function MinhaConta({ userId, onVoltar, onNomeAlterado, onContaExcluida }: Minha
                   value={novaSenha}
                   onChange={(evento) => setNovaSenha(evento.target.value)}
                 />
-                <BarraForcaSenha senha={novaSenha} nome={conta.nome} email={conta.email} />
                 <small className="secao__dica">
                   8 a 20 caracteres, com letra maiúscula, letra minúscula e número, sem sequências (como 1234) e sem o
                   seu nome ou e-mail.
                 </small>
+                <BarraForcaSenha senha={novaSenha} nome={conta.nome} email={conta.email} />
               </div>
               <div className="campo">
                 <label htmlFor="conta-confirmacao">Confirmar nova senha</label>

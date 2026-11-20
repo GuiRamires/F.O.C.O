@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import TermosModal from './TermosModal'
+import MarcaFoco from './components/MarcaFoco'
 
 export type DestinoMenu = 'lista' | 'estatisticas' | 'conta' | 'suporte' | 'sobre'
 
@@ -23,65 +25,58 @@ const ITENS: { destino: DestinoMenu; rotulo: string }[] = [
 function Sidebar({ aberta, nomeUsuario, telaAtual, onFechar, onNavegar, onLogout }: SidebarProps) {
   const [modalTermosAberto, setModalTermosAberto] = useState(false)
 
-  if (!aberta) return null
-
   return (
     <>
-      <div
-        onClick={onFechar}
-        style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 998,
-        }}
-      />
-
-      <nav
-        aria-label="Menu principal"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          width: '260px',
-          backgroundColor: '#1a1a1a',
-          borderRight: '1px solid #333',
-          zIndex: 999,
-          padding: '1.5rem 1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          overflowY: 'auto',
-        }}
-      >
-        <p style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
-          Olá, <strong>{nomeUsuario || 'estudante'}</strong>
-        </p>
-
-        {ITENS.map((item) => (
-          <button
-            key={item.destino}
-            className={`btn text-start ${telaAtual === item.destino ? 'btn-light' : 'btn-outline-light'}`}
-            aria-current={telaAtual === item.destino ? 'page' : undefined}
-            onClick={() => onNavegar(item.destino)}
+      <AnimatePresence>
+        {aberta && (
+          <motion.div
+            key="fundo"
+            className="foco-menu-lateral__fundo"
+            onClick={onFechar}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
+        {aberta && (
+          <motion.nav
+            key="menu"
+            className="foco-menu-lateral"
+            aria-label="Menu principal"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 380, damping: 40 }}
           >
-            {item.rotulo}
-          </button>
-        ))}
-        <button
-          className="btn btn-outline-light text-start"
-          onClick={() => setModalTermosAberto(true)}
-        >
-          Termos de Uso
-        </button>
+            <MarcaFoco className="foco-menu-lateral__marca" />
+            <p className="foco-menu-lateral__ola">
+              Olá, <strong>{nomeUsuario || 'estudante'}</strong>
+            </p>
 
-        <div style={{ flex: 1 }} />
+            {ITENS.map((item) => (
+              <button
+                key={item.destino}
+                type="button"
+                className={`foco-menu-lateral__item ${telaAtual === item.destino ? 'foco-menu-lateral__item--ativo' : ''}`}
+                aria-current={telaAtual === item.destino ? 'page' : undefined}
+                onClick={() => onNavegar(item.destino)}
+              >
+                {item.rotulo}
+              </button>
+            ))}
+            <button type="button" className="foco-menu-lateral__item" onClick={() => setModalTermosAberto(true)}>
+              Termos de Uso
+            </button>
 
-        <button className="btn btn-warning" onClick={onLogout}>
-          Sair
-        </button>
-      </nav>
+            <div className="foco-menu-lateral__espaco" />
+
+            <button type="button" className="btn btn-warning" onClick={onLogout}>
+              Sair
+            </button>
+          </motion.nav>
+        )}
+      </AnimatePresence>
 
       <TermosModal
         aberto={modalTermosAberto}

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { supabase } from './supabaseClient'
 import Login from './Login'
 import Cadastro from './Cadastro'
@@ -342,22 +343,30 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+    <div className="foco-area">
+      <header className="foco-topo-app">
         <button
+          type="button"
+          className="foco-topo-app__botao foco-topo-app__botao--perfil"
           onClick={() => setSidebarAberta(true)}
           aria-label="Abrir o menu"
-          style={{ background: 'none', border: '1px solid #444', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem' }}
         >
-          👤
+          <img src="/icone-perfil.png" alt="" />
         </button>
-        <h1 style={{ fontSize: '1.5rem' }}>F.O.C.O.</h1>
-        {telaAtual === 'lista' && (
-          <button className="btn btn-primary" onClick={() => setTelaAtual('novoFoco')}>
+        <h1 className="foco-topo-app__titulo">F.O.C.O.</h1>
+        {telaAtual === 'lista' ? (
+          <button
+            type="button"
+            className="foco-topo-app__botao foco-topo-app__botao--novo"
+            onClick={() => setTelaAtual('novoFoco')}
+            aria-label="Novo Foco"
+          >
             +
           </button>
+        ) : (
+          <span />
         )}
-      </div>
+      </header>
 
       <Sidebar
         aberta={sidebarAberta}
@@ -370,30 +379,45 @@ function App() {
 
       {carregandoFocos ? (
         <p>Carregando seus Focos...</p>
-      ) : telaAtual === 'novoFoco' ? (
-        <NovoFoco
-          userId={userId!}
-          onFocoCriado={() => {
-            setTelaAtual('lista')
-            carregarFocos(userId!)
-          }}
-          onCancelar={() => setTelaAtual('lista')}
-        />
       ) : (
-        <ListaFocos
-          focos={focos}
-          userId={userId!}
-          onFocoAtualizado={() => carregarFocos(userId!)}
-          onConcentrar={(foco) => {
-            setFocoSelecionado(foco)
-            setTelaAtual('preparacao')
-          }}
-        />
+        <AnimatePresence mode="wait" initial={false}>
+          {telaAtual === 'novoFoco' ? (
+            <motion.div key="novoFoco" {...TRANSICAO_DA_AREA}>
+              <NovoFoco
+                userId={userId!}
+                onFocoCriado={() => {
+                  setTelaAtual('lista')
+                  carregarFocos(userId!)
+                }}
+                onCancelar={() => setTelaAtual('lista')}
+              />
+            </motion.div>
+          ) : (
+            <motion.div key="lista" {...TRANSICAO_DA_AREA}>
+              <ListaFocos
+                focos={focos}
+                userId={userId!}
+                onFocoAtualizado={() => carregarFocos(userId!)}
+                onConcentrar={(foco) => {
+                  setFocoSelecionado(foco)
+                  setTelaAtual('preparacao')
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
 
       {telaAtual === 'lista' && <BotaoSuporte onAbrir={() => navegar('suporte')} />}
     </div>
   )
+}
+
+const TRANSICAO_DA_AREA = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 24 },
+  transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
 }
 
 export default App

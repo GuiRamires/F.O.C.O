@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { AvaliacaoEstrela, ResultadoAcaoEstrela } from './services/estrelaService'
 import './styles/timer.css'
 
-const COR_ESTRELA = '#ffc107'
+const COR_ESTRELA = 'var(--gold)'
 
 interface ModalAtribuirEstrelaProps {
   tituloFoco: string
