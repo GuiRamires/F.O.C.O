@@ -16,19 +16,19 @@ describe('aceite versionado do Termo de Uso (RF04)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
-  it('a versão exibida é a 1.1, a mesma registrada no banco', () => {
-    expect(VERSAO_DO_TERMO).toBe('1.1')
-    expect(avisoDeNovaVersao('1.1')).toContain('versão 1.1')
+  it('a versão exibida é a 1.2, a mesma registrada no banco', () => {
+    expect(VERSAO_DO_TERMO).toBe('1.2')
+    expect(avisoDeNovaVersao('1.2')).toContain('versão 1.2')
   })
 
   it('consulta a versão pendente, registra o aceite e busca o último aceite', async () => {
-    vi.mocked(buscarVersaoPendente).mockResolvedValueOnce('1.1')
+    vi.mocked(buscarVersaoPendente).mockResolvedValueOnce('1.2')
     vi.mocked(registrarAceite).mockResolvedValueOnce('2026-11-19T03:00:00Z')
-    vi.mocked(buscarUltimoAceite).mockResolvedValueOnce({ versao: '1.1', aceitoEm: '2026-11-19T03:00:00Z' })
+    vi.mocked(buscarUltimoAceite).mockResolvedValueOnce({ versao: '1.2', aceitoEm: '2026-11-19T03:00:00Z' })
 
-    expect(await verificarTermoPendente()).toBe('1.1')
+    expect(await verificarTermoPendente()).toBe('1.2')
     expect(await aceitarTermo()).toBe('2026-11-19T03:00:00Z')
-    expect(await consultarUltimoAceite('u1')).toEqual({ versao: '1.1', aceitoEm: '2026-11-19T03:00:00Z' })
+    expect(await consultarUltimoAceite('u1')).toEqual({ versao: '1.2', aceitoEm: '2026-11-19T03:00:00Z' })
     expect(buscarUltimoAceite).toHaveBeenCalledWith('u1')
   })
 
