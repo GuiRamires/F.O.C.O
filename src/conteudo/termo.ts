@@ -60,7 +60,7 @@ Canal de contato para assuntos de privacidade: aba Suporte da plataforma, catego
 | Identificação e contato | Nome e e-mail | Cadastro e Minha conta |
 | Credenciais de acesso | Senha, armazenada apenas como hash criptográfico | Cadastro, Minha conta e recuperação de senha |
 | Dados de uso da plataforma | Títulos, metas, cores e observações dos Focos; data e duração das sessões; registros de aprendizado | Telas de Focos e de sessões |
-| Suporte | Categoria, descrição e respostas dos chamados e, no chamado sem login, o e-mail de contato | Formulários de suporte |
+| Suporte | Categoria, descrição e respostas dos chamados e, no chamado sem login, o e-mail de contato e as respostas de verificação de identidade (nome usado no cadastro, datas aproximadas de criação da conta e do último acesso e títulos de Focos) | Formulários de suporte |
 | Registros de auditoria | Tipo da ação, data e hora, identificador do Foco e dados da mudança, sem textos digitados | Gerados automaticamente |
 | Dados técnicos de acesso | Endereço IP e informações do navegador | Registros dos provedores de infraestrutura |
 
@@ -144,7 +144,9 @@ Em caráter de transparência, reconhecemos as seguintes limitações da present
 
 2.12 Alterações desta política
 
-Esta política pode ser atualizada para refletir mudanças no sistema ou na legislação aplicável. A data e o número de versão constam no topo deste documento, e as alterações relevantes serão informadas na plataforma.
+Esta política pode ser atualizada para refletir mudanças no sistema ou na legislação aplicável. A data e o número de versão constam no topo deste documento, e as alterações relevantes serão informadas na plataforma. Quando uma nova versão é publicada, o uso da plataforma só continua após o aceite da nova versão, e a versão e a data de cada aceite ficam registradas e podem ser consultadas em Minha conta.
+
+Histórico de versões: a versão 1.1 consolidou este documento, e a versão 1.2 incluiu as respostas de verificação de identidade do chamado sem login (item 2.2) e o novo aceite a cada versão (item 2.12).
 
 Última atualização: 23/11/2026.
 `.trim()

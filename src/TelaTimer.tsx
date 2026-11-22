@@ -15,6 +15,7 @@ import {
 } from './services/janelaFlutuanteService'
 import { agendarAlerta, pararAlerta } from './utils/alertaSonoro'
 import { useJanelaFlutuante } from './hooks/useJanelaFlutuante'
+import { useTelaLigada } from './hooks/useTelaLigada'
 import PainelRetomada from './PainelRetomada'
 import ModalAprendizado from './ModalAprendizado'
 import type { ResultadoSalvar } from './controllers/sessaoController'
@@ -68,6 +69,8 @@ function TelaTimer({
   const mostrarRetomada = retomada && pausada
   const porcentagem = Math.round(Math.min(100, porcentagemFoco))
   const opcaoJanela = opcaoJanelaFlutuante(suportaJanelaFlutuante(window), estado === 'concluida')
+
+  useTelaLigada(estado === 'rodando')
 
   useEffect(() => {
     if (opcaoJanela === 'oculta') fechar()
@@ -270,4 +273,4 @@ function IconeJanela() {
   )
 }
 
-export default TelaTimer
+export default TelaTimer

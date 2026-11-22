@@ -383,7 +383,7 @@ describe('chamado sem login (RF29, fluxo alternativo)', () => {
     ).rejects.toThrow()
   })
 
-  it('elimina o chamado sem login 6 meses após o encerramento (Termo 1.1, item 2.7)', async () => {
+  it('elimina o chamado sem login 6 meses após o encerramento (Termo, item 2.7)', async () => {
     await inserirSemLogin('encerrado', 7)
     await inserirSemLogin('encerrado', 5)
     await inserirSemLogin('respondido', 8)
@@ -495,7 +495,7 @@ describe('aceite versionado do Termo de Uso (RF04)', () => {
     await db.query('insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3)', [
       NOVO,
       'novo@exemplo.com',
-      JSON.stringify({ nome: 'Novo', termo_versao: '1.1' }),
+      JSON.stringify({ nome: 'Novo', termo_versao: '1.2' }),
     ])
 
     const pendente = await comoUsuario(NOVO, () => db.query<{ versao: string | null }>('select public.termo_pendente() as versao'))
@@ -508,7 +508,20 @@ describe('aceite versionado do Termo de Uso (RF04)', () => {
   it('pede o aceite a quem ainda não aceitou a versão atual', async () => {
     const { rows } = await comoUsuario(ALUNO, () => db.query<{ versao: string | null }>('select public.termo_pendente() as versao'))
 
-    expect(rows[0].versao).toBe('1.1')
+    expect(rows[0].versao).toBe('1.2')
+  })
+
+  it('pede o novo aceite a quem aceitou apenas a versão anterior', async () => {
+    await db.query(`insert into public.aceites_termo (user_id, versao) values ($1, '1.1')`, [ALUNO])
+
+    const antes = await comoUsuario(ALUNO, () => db.query<{ versao: string | null }>('select public.termo_pendente() as versao'))
+    await comoUsuario(ALUNO, () => db.query('select public.aceitar_termo()'))
+    const depois = await comoUsuario(ALUNO, () => db.query<{ versao: string | null }>('select public.termo_pendente() as versao'))
+    const aceites = await db.query('select versao from public.aceites_termo where user_id = $1 order by versao', [ALUNO])
+
+    expect(antes.rows[0].versao).toBe('1.2')
+    expect(depois.rows[0].versao).toBeNull()
+    expect(aceites.rows).toEqual([{ versao: '1.1' }, { versao: '1.2' }])
   })
 
   it('aceita uma única vez por versão e registra no log', async () => {
@@ -519,8 +532,8 @@ describe('aceite versionado do Termo de Uso (RF04)', () => {
     const logs = await db.query(`select detalhes from public.logs_auditoria where user_id = $1 and acao = 'aceitar_termo'`, [ALUNO])
     const pendente = await comoUsuario(ALUNO, () => db.query<{ versao: string | null }>('select public.termo_pendente() as versao'))
 
-    expect(aceites.rows).toEqual([{ versao: '1.1' }])
-    expect(logs.rows).toEqual([{ detalhes: { versao: '1.1' } }])
+    expect(aceites.rows).toEqual([{ versao: '1.2' }])
+    expect(logs.rows).toEqual([{ detalhes: { versao: '1.2' } }])
     expect(pendente.rows[0].versao).toBeNull()
   })
 
@@ -533,14 +546,14 @@ describe('aceite versionado do Termo de Uso (RF04)', () => {
 
     const { rows } = await comoUsuario(NOVO, () => db.query<{ versao: string | null }>('select public.termo_pendente() as versao'))
 
-    expect(rows[0].versao).toBe('1.1')
+    expect(rows[0].versao).toBe('1.2')
   })
 
   it('o usuário não grava aceites diretamente nem vê os de outros', async () => {
     await comoUsuario(ADMIN, () => db.query('select public.aceitar_termo()'))
 
     await expect(
-      comoUsuario(ALUNO, () => db.query(`insert into public.aceites_termo (versao) values ('1.1')`)),
+      comoUsuario(ALUNO, () => db.query(`insert into public.aceites_termo (versao) values ('1.2')`)),
     ).rejects.toThrow()
     const { rows } = await comoUsuario(ALUNO, () => db.query('select * from public.aceites_termo'))
 
